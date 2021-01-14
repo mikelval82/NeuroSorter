@@ -19,6 +19,8 @@ class nev_manager:
         
         self.ExperimentID = 0
         for file in fileNames:
+            self.spike_dict['FileNames'].append(file)
+            
             if file[-4:] == '.npy':
                 self.__python_dict(file)
             elif file[-4:] == '.mat':
@@ -27,8 +29,20 @@ class nev_manager:
                 self.__nev_dict(file, self.ExperimentID)
             self.ExperimentID += 1   
     
-    def save(self, path):
-        np.save(path, self.spike_dict)
+    def save(self, path): 
+        exp = 0
+        for file in self.spike_dict['FileNames']:
+            data = {'ChannelID':[], 'UnitID':[], 'TimeStamps':[], 'Waveforms':[]}
+            data['ChannelID'] = [val for it, val in enumerate(self.spike_dict['ChannelID']) if self.spike_dict['ExperimentID'][it] == exp]
+            data['UnitID'] = [val for it, val in enumerate(self.spike_dict['UnitID']) if self.spike_dict['ExperimentID'][it] == exp]
+            data['TimeStamps'] = [val for it, val in enumerate(self.spike_dict['TimeStamps']) if self.spike_dict['ExperimentID'][it] == exp]
+            data['Waveforms'] = [val for it, val in enumerate(self.spike_dict['Waveforms']) if self.spike_dict['ExperimentID'][it] == exp]
+            if path.split('/')[-1] != '_processed':
+                filename = path + '_' + str(exp) + '.npy'
+            else:
+                filename = file[:-4] + '_processed.npy'
+            np.save(filename, data)
+            exp+=1
         
     def __mat_dict(self, file, ExperimentID):
         append_channelID = self.spike_dict['ChannelID'].append

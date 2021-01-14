@@ -7,6 +7,8 @@
 #%%
 import numpy as np 
 import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('Qt5Agg')
 
 def run(spike_dict, current):
     max_ISIvalue=200

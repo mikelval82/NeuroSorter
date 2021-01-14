@@ -7,6 +7,8 @@
 #%%
 import numpy as np 
 import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('Qt5Agg')
 
 def run(spike_dict, current):
     fs = 30000
@@ -27,3 +29,5 @@ def run(spike_dict, current):
         plt.xlabel('Time[s]')
         plt.ylabel('Channel')  
         plt.show()
+
+

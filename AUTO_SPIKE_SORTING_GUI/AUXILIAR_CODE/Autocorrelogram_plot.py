@@ -9,6 +9,8 @@
 import numpy as np 
 import matplotlib.pyplot as plt
 from numpy.lib.stride_tricks import as_strided
+import matplotlib
+matplotlib.use('Qt5Agg')
 
 def run(spike_dict,current):
     ''' 

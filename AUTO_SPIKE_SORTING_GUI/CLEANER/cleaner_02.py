@@ -25,12 +25,12 @@ class spike_denoiser:
         self.size_threshold = 1000
     
     def __load_references(self):
-        mypath = './CLEANER/references/'
+        mypath = './CLEANER/spike_templates/'
         self.references = []
         for file in [f for f in listdir(mypath) if isfile(join(mypath, f))]:
             self.references.append( np.load(mypath + file) )
             
-        mypath = './CLEANER/antireferences/'
+        mypath = './CLEANER/artefact_templates/'
         self.antireferences = []
         for file in [f for f in listdir(mypath) if isfile(join(mypath, f))]:
             self.antireferences.append( np.load(mypath + file) )

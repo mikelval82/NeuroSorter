@@ -324,5 +324,6 @@ class GUI_behaviour(QMainWindow, ui):
     def saveFileDialog(self):
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
-        fileName, filetype = QFileDialog.getSaveFileName(self, 'QFileDialog.getSaveFileName()', '', '(*.npy)', options=options)
+        fileName, filetype = QFileDialog.getSaveFileName(self, 'QFileDialog.getSaveFileName()', '_processed', '(*.npy)', options=options)
+        print(fileName, filetype)
         self.dmg.save(fileName)

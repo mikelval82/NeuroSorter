@@ -19,7 +19,7 @@ class data_manager(nev_manager):
         
     def initialize_spike_containers(self):
         self.current ={'channelID':None,'unitID':None,'plotted':[],'selected':[]}
-        self.spike_dict = {'ExperimentID':[],'ChannelID':[],'UnitID':[],'OldID':[],'TimeStamps':[],'Waveforms':[]}
+        self.spike_dict = {'FileNames':[],'ExperimentID':[],'ChannelID':[],'UnitID':[],'OldID':[],'TimeStamps':[],'Waveforms':[]}
          
     def show_channelID(self, channelID):
         channelID = int(channelID)
