@@ -8,4 +8,4 @@ numpy
 scikit-learn
 scipy
 similaritymeasures
-
+tensorflow==2.0
