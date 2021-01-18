@@ -33,7 +33,7 @@
     <item>
      <widget class="QTabWidget" name="windows_tabWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="principal_tab">
        <attribute name="title">
@@ -621,8 +621,15 @@
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_2">
            <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_11">
-             <item>
+            <layout class="QGridLayout" name="gridLayout_3">
+             <item row="0" column="0">
+              <widget class="QPushButton" name="btn_new_file">
+               <property name="text">
+                <string>NEW FILE</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
               <widget class="QPushButton" name="btn_save_changes">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -641,26 +648,26 @@
                </property>
               </widget>
              </item>
-             <item>
-              <widget class="QPushButton" name="btn_run">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>16777215</width>
-                 <height>50</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>RUN SCRIPT</string>
-               </property>
-              </widget>
-             </item>
             </layout>
+           </item>
+           <item>
+            <widget class="QPushButton" name="btn_run">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>50</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>RUN SCRIPT</string>
+             </property>
+            </widget>
            </item>
            <item>
             <widget class="QListWidget" name="listWidget_3">
@@ -670,6 +677,18 @@
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="scripts_log_groupBox">
+             <property name="title">
+              <string>Log viewer</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_3">
+              <item>
+               <widget class="QPlainTextEdit" name="scripts_logger"/>
+              </item>
+             </layout>
             </widget>
            </item>
           </layout>

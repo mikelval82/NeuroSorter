@@ -10,10 +10,11 @@ from scipy.signal import resample
 import h5py
 import numpy as np
 
-from decorators.compute_time import compute_time
+from decorators.time_consuming import timeit 
 
 class nev_manager:   
      
+    @timeit
     def load(self, fileNames):
         self.initialize_spike_containers()
         
@@ -27,7 +28,9 @@ class nev_manager:
                 self.__mat_dict(file, self.ExperimentID)
             elif file[-4:] == '.nev':
                 self.__nev_dict(file, self.ExperimentID)
-            self.ExperimentID += 1   
+            self.ExperimentID += 1 
+            
+        return None
     
     def save(self, path): 
         exp = 0
@@ -43,7 +46,7 @@ class nev_manager:
                 filename = file[:-4] + '_processed.npy'
             np.save(filename, data)
             exp+=1
-        
+      
     def __mat_dict(self, file, ExperimentID):
         append_channelID = self.spike_dict['ChannelID'].append
         append_TimeStamps = self.spike_dict['TimeStamps'].append
@@ -60,7 +63,6 @@ class nev_manager:
             [append_OldID(None) for timestamp in file['NEV']['Data']['Spikes'].get('TimeStamp')[:]]
             [append_ExperimentID(ExperimentID) for timestamp in file['NEV']['Data']['Spikes'].get('TimeStamp')[:]]
            
-    @compute_time
     def __nev_dict(self, file, ExperimentID):
         # Version control
         brpylib_ver_req = "1.3.1"

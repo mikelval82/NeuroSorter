@@ -5,7 +5,6 @@
 @institutions: %(Dpto. de Inteligencia Artificial, Universidad Nacional de Educación a Distancia (UNED), Postdoctoral Researcher Instituto de Neurociencias UMH-CSIC)
 """
 #%%
-      
 import sys 
 import os
 
@@ -15,12 +14,16 @@ import importlib
 from importlib import reload
 
 class dynamic:
-    def __init__(self, dmg, listWidget, RawCode):
+    
+    
+    def __init__(self, dmg, log, listWidget, RawCode):
         self.RawCode = RawCode
         self.listWidget = listWidget
         self.dmg = dmg
+        self.log = log
         self.current_row = 0
 
+    
     def load_module(self, fileName):
         ########### separo path y nombre del modulo ##############
         aux = fileName.split("/")
@@ -32,13 +35,21 @@ class dynamic:
         sys.path.append(os.path.realpath('./AUXILIAR_CODE/'))
 
         try:
-            print(module_name)
             self.module = importlib.import_module(module_name)
             reload(self.module)
-            self.module.run(self.dmg.spike_dict, self.dmg.current)
-        except:
-            pass
-            
+            [_,time_consumed] = self.module.run(self.dmg.spike_dict, self.dmg.current)
+            self.log.myprint(time_consumed)
+        except Exception as ex:
+            self.log.myprint_error('Error -> ' + str(ex))
+    
+    def create(self, path):
+        # Creates a new file 
+        with open(path, 'w') as fp: 
+             # To write data to new file  
+             fp.write("# -*- coding: utf-8 -*- \nfrom decorators.time_consuming import timeit\n\n@timeit\ndef run(spike_dict, current):\n    pass") 
+        # -- update listwidget scripts
+        self.load_auxiliar_code()
+        
     def save_script(self):
         script = self.listWidget.currentItem().text()
         code = self.RawCode.toPlainText()
@@ -50,7 +61,7 @@ class dynamic:
         # update values
         self.load_auxiliar_code()      
         self.edited = True
-              
+             
     def load_auxiliar_code(self):
         self.listWidget.clear()
         mypath = './AUXILIAR_CODE/'

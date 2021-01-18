@@ -27,7 +27,7 @@ class MyApp(QApplication):
         self.ae = sorter()
         self.dmg = data_manager(self.spk, self.ae)
         self.gui = GUI_behaviour(self.dmg)   
-        
+        # -- close app --
         sys.exit(self.exec_())
 
     def loadStyle(self):

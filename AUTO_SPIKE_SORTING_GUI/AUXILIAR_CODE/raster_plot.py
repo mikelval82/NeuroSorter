@@ -5,11 +5,14 @@
 @institutions: %(Dpto. de Inteligencia Artificial, Universidad Nacional de Educación a Distancia (UNED), Postdoctoral Researcher Instituto de Neurociencias UMH-CSIC)
 """
 #%%
+from decorators.time_consuming import timeit 
+
 import numpy as np 
 import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use('Qt5Agg')
 
+@timeit
 def run(spike_dict, current):
     fs = 30000
     experiments = np.unique(spike_dict['ExperimentID'])
@@ -29,5 +32,6 @@ def run(spike_dict, current):
         plt.xlabel('Time[s]')
         plt.ylabel('Channel')  
         plt.show()
+        
 
 

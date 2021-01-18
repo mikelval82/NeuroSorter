@@ -12,13 +12,15 @@ class log():
     def __init__(self,logger):
         self.logger = logger
         self.logger.setCenterOnScroll(True)
+        
         self.tf = QtGui.QTextCharFormat()
         self.tf_green = QtGui.QTextCharFormat()
         self.tf_red = QtGui.QTextCharFormat()
+        self.tf_yellow = QtGui.QTextCharFormat()
         self.tf_green.setForeground(QtGui.QBrush(QtCore.Qt.green))
         self.tf_red.setForeground(QtGui.QBrush(QtCore.Qt.red))
-        
-        
+        self.tf_yellow.setForeground(QtGui.QBrush(QtCore.Qt.yellow))
+
     def myprint(self, text):
         self.logger.setCurrentCharFormat(self.tf)
         self.logger.appendPlainText(text)
@@ -30,7 +32,7 @@ class log():
         self.logger.centerCursor()
     
     def myprint_out(self, text):
-        self.logger.setCurrentCharFormat(self.tf_green)
+        self.logger.setCurrentCharFormat(self.tf_yellow)
         self.logger.appendPlainText("> "+text)
         self.logger.centerCursor()
         

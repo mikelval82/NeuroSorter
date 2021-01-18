@@ -6,7 +6,7 @@
 """
 #%%
 from DATA_MANAGER.file_IO import nev_manager 
-from decorators.compute_time import compute_time
+from decorators.time_consuming import timeit 
 
 import numpy as np
 
@@ -79,7 +79,7 @@ class data_manager(nev_manager):
         self.current['selected'] = []
         return self.current['plotted']
 
-    @compute_time
+    @timeit
     def clean_by_amplitude_threshold(self, r_min, r_max):
         if self.current['unitID'] != 'Noise':     
             index = np.array( [it for it, channel in enumerate(self.spike_dict['ChannelID']) if self.spike_dict['UnitID'][it] != -1] )
@@ -95,8 +95,8 @@ class data_manager(nev_manager):
         return self.current['plotted']
 
         
-    @compute_time        
-    def clean_by_temporal_threshold(self, window = 10, fs=30000):
+    @timeit        
+    def clean_by_cross_talk(self, window = 10, fs=30000):
         for experimentID in np.unique(self.spike_dict['ExperimentID']):
             index = np.array([it for it, exp in enumerate(self.spike_dict['ExperimentID']) if exp == experimentID and self.spike_dict['UnitID'][it] != -1])
             
@@ -123,7 +123,7 @@ class data_manager(nev_manager):
                         
         return self.current['plotted']
     
-    @compute_time
+    @timeit
     def clean(self, n_neighbors=15, min_dist=.3, metric='manhattan'):
         if self.current['unitID'] != 'Noise':
             if self.current['unitID'] != 'All':
@@ -146,7 +146,7 @@ class data_manager(nev_manager):
         return self.current['plotted']
 
         
-    @compute_time
+    @timeit
     def clean_all(self, n_neighbors=15, min_dist=.3, metric='manhattan'):
         # reset old unit for undo action
         self.spike_dict['OldID'] = [None for _ in self.spike_dict['OldID']]
@@ -168,7 +168,7 @@ class data_manager(nev_manager):
                 
         return self.current['plotted']
     
-    @compute_time
+    @timeit
     def sort(self, n_neighbors=20, min_dist=.3, metric='manhattan'):
         if self.current['unitID'] != 'Noise' and self.current['unitID'] != 'All':
             channelID = int(self.current['channelID'])
@@ -207,7 +207,7 @@ class data_manager(nev_manager):
             
         return self.current['plotted']
     
-    @compute_time
+    @timeit
     def sort_all(self, n_neighbors=20, min_dist=.3, metric='manhattan'):
         # reset old unit for undo action
         self.spike_dict['OldID'] = [None for _ in self.spike_dict['OldID']]

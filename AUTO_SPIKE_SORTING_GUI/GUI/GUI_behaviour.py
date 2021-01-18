@@ -20,9 +20,10 @@ class GUI_behaviour(QMainWindow, ui):
         self.show()
         
         self.dmg = dmg
-        self.dyn = dynamic(self.dmg, self.listWidget_3, self.RawCode)
-        self.dyn.load_auxiliar_code()
         self.log = log(self.logger)
+        self.scripts_log = log(self.scripts_logger)
+        self.dyn = dynamic(self.dmg, self.scripts_log, self.listWidget_3, self.RawCode)
+        self.dyn.load_auxiliar_code()
         
         self.MplWidget.emitter.connect(self.manage_selection)
         
@@ -31,7 +32,7 @@ class GUI_behaviour(QMainWindow, ui):
         self.all_denoising_btn.clicked.connect(self.automatic_denoising)
         self.all_sorting_btn.clicked.connect(self.automatic_sorting)
         self.amplitude_threshold_btn.clicked.connect(lambda: self.update_amplitude_threshold())
-        self.temporal_threshold_btn.clicked.connect(lambda: self.update_temporal_threshold())
+        self.temporal_threshold_btn.clicked.connect(lambda: self.update_cross_talk())
         self.delete_btn.clicked.connect(lambda: self.delete())
         self.undo_btn.clicked.connect(lambda: self.undo())
         self.denoising_btn.clicked.connect(lambda: self.spikes_clean())
@@ -39,6 +40,7 @@ class GUI_behaviour(QMainWindow, ui):
         self.all_in_btn.clicked.connect(lambda: self.all_in_one_step())
         self.btn_run.clicked.connect(lambda: self.dyn.load_module(self.listWidget_3.currentItem().text()))
         self.btn_save_changes.clicked.connect(self.dyn.save_script)
+        self.btn_new_file.clicked.connect(self.create_file)
         
         self.channel_comboBox.activated.connect(lambda: self.toChannelID(self.channel_comboBox.currentText()))
         self.unit_comboBox.activated.connect(lambda: self.toUnitID(self.unit_comboBox.currentText()))
@@ -124,24 +126,28 @@ class GUI_behaviour(QMainWindow, ui):
         text = self.AmplitudeThreshold_Edit.text()
         r_min = int(text.split(',')[0].split('[')[1])
         r_max = int(text.split(',')[1].split(']')[0])
-        index = self.dmg.clean_by_amplitude_threshold(r_min, r_max)
+        [index, time_consumed] = self.dmg.clean_by_amplitude_threshold(r_min, r_max)
+        self.log.myprint(time_consumed)
+        self.log.myprint_out('ACTION == Amplitude Thresholding is done!')
         self.update_unit_combobox(self.channel_comboBox.currentText(), self.unit_comboBox.currentText())
         self.update_view(index)
 
-    def update_temporal_threshold(self):
-        self.log.myprint('UPDATE Temporal Threshold range.')
+    def update_cross_talk(self):
+        self.log.myprint('UPDATE Cross talk time interval.')
         text = self.TemporalThreshold_Edit.text()
-        index = self.dmg.clean_by_temporal_threshold(window=(int(text)))
+        [index, time_consumed] = self.dmg.clean_by_cross_talk(window=(int(text)))
+        self.log.myprint(time_consumed)
+        self.log.myprint_out('ACTION == Cross talk analysis is done!')
         self.update_unit_combobox(self.channel_comboBox.currentText(), self.unit_comboBox.currentText())
         self.update_view(index)
 
     def delete(self):
-        self.log.myprint('ACTION == Delete')
+        self.log.myprint_out('ACTION == Delete')
         index = self.dmg.delete()
         self.update_view(index)
 
     def undo(self):
-        self.log.myprint('ACTION == Undo')
+        self.log.myprint_out('ACTION == Undo')
         index = self.dmg.undo()
         self.update_unit_combobox(self.channel_comboBox.currentText(), self.unit_comboBox.currentText())
         self.update_view(index)
@@ -151,8 +157,8 @@ class GUI_behaviour(QMainWindow, ui):
         n_neighbors = int(self.n_neighbors_edit.text())
         min_dist = float(self.min_dist_edit.text())
         metric = self.metric_comboBox.currentText()
-        
-        index = self.dmg.clean(n_neighbors=n_neighbors, min_dist=min_dist, metric=metric)
+        [index, time_consumed] = self.dmg.clean(n_neighbors=n_neighbors, min_dist=min_dist, metric=metric)
+        self.log.myprint(time_consumed)
         self.log.myprint_out('ACTION == Spikes denoising is done!')
         self.update_unit_combobox(self.channel_comboBox.currentText(), self.unit_comboBox.currentText())
         self.update_view(index)
@@ -165,21 +171,25 @@ class GUI_behaviour(QMainWindow, ui):
             n_neighbors = int(self.n_neighbors_edit.text())
             min_dist = float(self.min_dist_edit.text())
             metric = self.metric_comboBox.currentText()
-            
-            index = self.dmg.sort(n_neighbors=n_neighbors, min_dist=min_dist, metric=metric)
+            [index, time_consumed] = self.dmg.sort(n_neighbors=n_neighbors, min_dist=min_dist, metric=metric)
+            self.log.myprint(time_consumed)
             self.log.myprint_out('ACTION == Spikes sorting is done!')
             self.update_unit_combobox(self.channel_comboBox.currentText(), 'All')
             self.update_view(index)
 
     def all_in_one_step(self):
         self.log.myprint('ACTION == Spikes denoising in progress...')
-        self.update_temporal_threshold()
+        [_, time_consumed] = self.update_cross_talk()
+        self.log.myprint(time_consumed)
         self.log.myprint_out('ACTION == Temporal threshold is done!')
-        self.update_amplitude_threshold()
+        [_, time_consumed] = self.update_amplitude_threshold()
+        self.log.myprint(time_consumed)
         self.log.myprint_out('ACTION == Amplitude threshold is done!')
-        self.dmg.clean_all(n_neighbors=10, min_dist=0.1, metric='manhattan')
+        [_, time_consumed] = self.dmg.clean_all(n_neighbors=10, min_dist=0.1, metric='manhattan')
+        self.log.myprint(time_consumed)
         self.log.myprint_out('ACTION == Spikes denoising is done!')
-        index = self.dmg.sort_all(n_neighbors=20, min_dist=0.3, metric='manhattan')
+        [index, time_consumed] = self.dmg.sort_all(n_neighbors=20, min_dist=0.3, metric='manhattan')
+        self.log.myprint(time_consumed)
         self.log.myprint_out('ACTION == Spikes sorting is done!')
         self.update_unit_combobox(self.channel_comboBox.currentText(), 'All')
         self.update_view(index)
@@ -189,8 +199,8 @@ class GUI_behaviour(QMainWindow, ui):
         n_neighbors = int(self.n_neighbors_edit.text())
         min_dist = float(self.min_dist_edit.text())
         metric = self.metric_comboBox.currentText()
-        
-        index = self.dmg.clean_all(n_neighbors=n_neighbors, min_dist=min_dist, metric=metric)
+        [index, time_consumed] = self.dmg.clean_all(n_neighbors=n_neighbors, min_dist=min_dist, metric=metric)
+        self.log.myprint(time_consumed)
         self.log.myprint_out('ACTION == Spikes denoising is done!')
         self.update_unit_combobox(self.channel_comboBox.currentText(), 'All')
         self.update_view(index)
@@ -200,8 +210,8 @@ class GUI_behaviour(QMainWindow, ui):
         n_neighbors = int(self.n_neighbors_edit.text())
         min_dist = float(self.min_dist_edit.text())
         metric = self.metric_comboBox.currentText()
-        
-        index = self.dmg.sort_all(n_neighbors=n_neighbors, min_dist=min_dist, metric=metric)
+        [index, time_consumed] = self.dmg.sort_all(n_neighbors=n_neighbors, min_dist=min_dist, metric=metric)
+        self.log.myprint(time_consumed)
         self.log.myprint_out('ACTION == Spikes sorting is done!')
         self.update_unit_combobox(self.channel_comboBox.currentText(), 'All')
         self.update_view(index)
@@ -312,7 +322,8 @@ class GUI_behaviour(QMainWindow, ui):
             self.log.myprint_in(file)
 
         try:
-            self.dmg.load(fileNames)
+            [_,time_consumed] = self.dmg.load(fileNames)
+            self.log.myprint(time_consumed)
             self.log.myprint_out('Loading completed.')
         except:
             self.log.myprint_error('Cannot load selected file.')
@@ -325,5 +336,10 @@ class GUI_behaviour(QMainWindow, ui):
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
         fileName, filetype = QFileDialog.getSaveFileName(self, 'QFileDialog.getSaveFileName()', '_processed', '(*.npy)', options=options)
-        print(fileName, filetype)
         self.dmg.save(fileName)
+        
+    def create_file(self):
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
+        fileName, filetype = QFileDialog.getSaveFileName(self, 'QFileDialog.getSaveFileName()', '', '(*.py)', options=options)
+        self.dyn.create(fileName + '.py')
