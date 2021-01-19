@@ -20,7 +20,7 @@ class nev_manager:
         
         self.ExperimentID = 0
         for file in fileNames:
-            self.spike_dict['FileNames'].append(file)
+            self.spike_dict['FileNames'].append(file.split('/')[-1])
             
             if file[-4:] == '.npy':
                 self.__python_dict(file)
@@ -40,10 +40,12 @@ class nev_manager:
             data['UnitID'] = [val for it, val in enumerate(self.spike_dict['UnitID']) if self.spike_dict['ExperimentID'][it] == exp]
             data['TimeStamps'] = [val for it, val in enumerate(self.spike_dict['TimeStamps']) if self.spike_dict['ExperimentID'][it] == exp]
             data['Waveforms'] = [val for it, val in enumerate(self.spike_dict['Waveforms']) if self.spike_dict['ExperimentID'][it] == exp]
-            if path.split('/')[-1] != '_processed':
-                filename = path + '_' + str(exp) + '.npy'
+            print(path, file)
+            if path.split('/')[-1] != 'processed_':
+                filename = path[:-10] + '_' + str(exp) + '.npy'
             else:
-                filename = file[:-4] + '_processed.npy'
+                filename = path + file[:-4] + '.npy'
+            print(filename)
             np.save(filename, data)
             exp+=1
       

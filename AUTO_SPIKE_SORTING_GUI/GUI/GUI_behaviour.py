@@ -181,17 +181,17 @@ class GUI_behaviour(QMainWindow, ui):
 
     def all_in_one_step(self):
         self.log.myprint('ACTION == Spikes denoising in progress...')
-        [_, time_consumed] = self.update_cross_talk()
-        self.log.myprint(time_consumed)
+        self.update_cross_talk()
+        print('update cross talk')
         self.log.myprint_out('ACTION == Temporal threshold is done!')
-        [_, time_consumed] = self.update_amplitude_threshold()
-        self.log.myprint(time_consumed)
+        self.update_amplitude_threshold()
+        print('update amplitude threshold')
         self.log.myprint_out('ACTION == Amplitude threshold is done!')
-        [_, time_consumed] = self.dmg.clean_all(n_neighbors=10, min_dist=0.1, metric='manhattan')
-        self.log.myprint(time_consumed)
+        self.dmg.clean_all(n_neighbors=10, min_dist=0.1, metric='manhattan')
+        print('spike denoising')
         self.log.myprint_out('ACTION == Spikes denoising is done!')
-        [index, time_consumed] = self.dmg.sort_all(n_neighbors=20, min_dist=0.3, metric='manhattan')
-        self.log.myprint(time_consumed)
+        [index, _] = self.dmg.sort_all(n_neighbors=20, min_dist=0.3, metric='manhattan')
+        print('spike clustering')
         self.log.myprint_out('ACTION == Spikes sorting is done!')
         self.update_unit_combobox(self.channel_comboBox.currentText(), 'All')
         self.update_view(index)
@@ -201,7 +201,9 @@ class GUI_behaviour(QMainWindow, ui):
         n_neighbors = int(self.n_neighbors_edit.text())
         min_dist = float(self.min_dist_edit.text())
         metric = self.metric_comboBox.currentText()
+        print('antes')
         [index, time_consumed] = self.dmg.clean_all(n_neighbors=n_neighbors, min_dist=min_dist, metric=metric)
+        print('despues¨')
         self.log.myprint(time_consumed)
         self.log.myprint_out('ACTION == Spikes denoising is done!')
         self.update_unit_combobox(self.channel_comboBox.currentText(), 'All')
@@ -337,7 +339,7 @@ class GUI_behaviour(QMainWindow, ui):
     def saveFileDialog(self):
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
-        fileName, filetype = QFileDialog.getSaveFileName(self, 'QFileDialog.getSaveFileName()', '_processed', '(*.npy)', options=options)
+        fileName, filetype = QFileDialog.getSaveFileName(self, 'QFileDialog.getSaveFileName()', 'processed_', '(*.npy)', options=options)
         self.dmg.save(fileName)
         
     def create_file(self):

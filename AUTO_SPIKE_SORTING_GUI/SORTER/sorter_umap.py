@@ -31,18 +31,21 @@ class sorter_umap:
         return unit_IDs
 
     def _compute_BIC(self, latent_features):
+        best_gmm = mixture.GaussianMixture(n_components=1,covariance_type='diag').fit(latent_features)
         lowest_bic = np.infty
-        n_components_range = range(1, 7)
-        
+        n_components_range = range(2, 7)
         for n_components in n_components_range:
             # Fit a Gaussian mixture with EM
-            gmm = mixture.GaussianMixture(n_components=n_components,covariance_type='diag').fit(latent_features)
-
-            bic_temp = gmm.bic(latent_features)
-            if bic_temp < lowest_bic:
-                lowest_bic = bic_temp
-                best_gmm = gmm
-    
+            try:
+                gmm = mixture.GaussianMixture(n_components=n_components,covariance_type='diag').fit(latent_features)
+                print(gmm)
+                bic_temp = gmm.bic(latent_features)
+                if bic_temp < lowest_bic:
+                    lowest_bic = bic_temp
+                    best_gmm = gmm
+            except:
+                pass    
+        
         unit_IDs = best_gmm.predict(latent_features)
         return unit_IDs
     

@@ -58,11 +58,9 @@ class data_manager(nev_manager):
 
         
     def undo(self): 
-        self.current['plotted'] = []
         index = [it for it,oldID in enumerate(self.spike_dict['OldID']) if oldID != None]
         for sel in index:
             self.spike_dict['UnitID'][sel] = self.spike_dict['OldID'][sel]
-            self.current['plotted'].append(sel)
             
         self.spike_dict['OldID'] = [None for _ in self.spike_dict['OldID']]
         
@@ -97,7 +95,12 @@ class data_manager(nev_manager):
         
     @timeit        
     def clean_by_cross_talk(self, window = 10, fs=30000):
+        # reset old unit for undo action
+        self.spike_dict['OldID'] = [None for _ in self.spike_dict['OldID']]
+        
         for experimentID in np.unique(self.spike_dict['ExperimentID']):
+            
+            
             index = np.array([it for it, exp in enumerate(self.spike_dict['ExperimentID']) if exp == experimentID and self.spike_dict['UnitID'][it] != -1])
             
             bin = int(fs*window/1000)
@@ -119,6 +122,7 @@ class data_manager(nev_manager):
                 if np.sum( temporal_pattern[:,col] ) >= 10:
                     iters = [it for it, x in zip(positions, cols) if x == col+1]
                     for it in iters:
+                        self.spike_dict['OldID'][it] = self.spike_dict['UnitID'][it]
                         self.spike_dict['UnitID'][it] = -1 
                         
         return self.current['plotted']
@@ -152,9 +156,13 @@ class data_manager(nev_manager):
         self.spike_dict['OldID'] = [None for _ in self.spike_dict['OldID']]
             
         for channelID in np.unique(self.spike_dict['ChannelID']):
+            print('que channel id ', channelID)
             index = np.array([it for it, channel in enumerate(self.spike_dict['ChannelID']) if channel == channelID and self.spike_dict['UnitID'][it] != -1])
+            print(len(index))
             waveforms = np.array([self.spike_dict['Waveforms'][it] for it in index])
+            print(waveforms.shape)
             scores = self.spk.run(waveforms, n_neighbors=n_neighbors, min_dist=min_dist, metric=metric)
+            print(len(scores))
             spike_index = index[scores==1]
             noise_index = index[scores==0]
 

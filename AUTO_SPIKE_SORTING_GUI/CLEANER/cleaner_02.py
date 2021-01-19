@@ -34,34 +34,50 @@ class spike_denoiser:
         self.antireferences = []
         for file in [f for f in listdir(mypath) if isfile(join(mypath, f))]:
             self.antireferences.append( np.load(mypath + file) )
+            
+        return True
         
     def run(self, waveforms, n_neighbors=10, min_dist=.3, n_components=2, metric='manhattan'):
-        self.__load_references()
+        print(self.__load_references())
         
         if waveforms.shape[0] <= n_neighbors:
+            print('paso por tengo menos formas de onda que vecinos')
             unit_IDs = self._filter_spikes(waveforms, np.zeros((waveforms.shape[0],), dtype=int))
         else:
+            print('paso por tengo suficientes')
             reducer = umap.UMAP( n_neighbors=n_neighbors, min_dist=min_dist, n_components=n_components, metric=metric, set_op_mix_ratio=0.2 )
             embedding = reducer.fit_transform(waveforms)
+            print(embedding.shape)
             labels = self._compute_BIC(embedding)
-            outliers = self._filter_outliers(embedding)
-            labels[outliers==-1] = -1
+            print(np.unique(labels))
+            try:
+                outliers = self._filter_outliers(embedding)
+                print(len(outliers))
+                labels[outliers==-1] = -1
+            except:
+                print('fallo al computar los outliers')
             unit_IDs = self._filter_spikes(waveforms, labels)
         return unit_IDs
     
     def _compute_BIC(self, latent_features):
+        best_gmm = mixture.GaussianMixture(n_components=1,covariance_type='diag').fit(latent_features)
         lowest_bic = np.infty
-        n_components_range = range(1, 7)
-        
+        n_components_range = range(2, 7)
         for n_components in n_components_range:
+            print('num components ', n_components, lowest_bic, best_gmm)
             # Fit a Gaussian mixture with EM
-            gmm = mixture.GaussianMixture(n_components=n_components,covariance_type='diag').fit(latent_features)
-
-            bic_temp = gmm.bic(latent_features)
-            if bic_temp < lowest_bic:
-                lowest_bic = bic_temp
-                best_gmm = gmm
+            try:
+                gmm = mixture.GaussianMixture(n_components=n_components,covariance_type='diag').fit(latent_features)
+                print(gmm)
+                bic_temp = gmm.bic(latent_features)
+                if bic_temp < lowest_bic:
+                    lowest_bic = bic_temp
+                    best_gmm = gmm
+            except:
+                pass
+            print('termino de calcular el gmm en el bucle')
     
+        
         unit_IDs = best_gmm.predict(latent_features)
         return unit_IDs
     
