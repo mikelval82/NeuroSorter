@@ -1,26 +1,34 @@
 # NeuroSorter Basics
 
-Note: This document covers the basic information to use NeuroSorter Beta version
+Note: This document covers the basic information to use NeuroSorter-Interface Beta version
 
 ## 1 Dependencies
 
-PyQt5, QtPy, h5py, umap-learn, seaborn, matplotlib, numpy, scikit-learn, scipy, similaritymeasures
+python 3.7, PyQt5, QtPy, h5py, umap-learn, seaborn, matplotlib, numpy, scikit-learn, scipy, similaritymeasures
 
 All dependencies can be installed using:
 
-git clone https://github.com/mikelval82/NeuroSorter-Interface.git
+    git clone https://github.com/mikelval82/NeuroSorter-Interface.git
 
-cd NeuroSorter-Interface
+    cd NeuroSorter-Interface
 
-_pip install -r requirements.txt_
+    pip install -r requirements.txt
+    
+To run the GUI:
+    
+    cd AUTO_SPIKE_SORTING_GUI
+    
+    python3 AUTO_SPIKE_SORTING_GUI.py
 
 ## 2 Overview
 
-NeuroSorter is a spike cleaner and sorter. It works at three levels: First, it normalizes the data and discard abnormal shapes to remove noise events using a CNN; this network can be trained with previously cleaned data do adapt it to the specific recording of each setup. Then, putative units are sorted using a combination of an autoencoder to reduce dimensionality and clustering using Gaussian Mixture Models. This second step can be repeated to subsequently split desired units. At last, all units are visualized for manual curation; in addition, different functions are provided to facilitate the data curation (acor, data visualization, ISI).
+NeuroSorter is a spike cleaner and sorter. ![Download Tutorial.mp4](https://github.com/mikelval82/NeuroSorter-Interface/blob/main/tutorial.mp4?raw=true)
 
 ## 3 NeuroSorter interface
 
-![PySorter Scheme](https://github.com/[mikelval82]/[NeuroSorter-Interface]/blob/[main]/GUI_overview.png?raw=true)
+![PySorter GUI Spikes-Viewer](https://github.com/mikelval82/NeuroSorter-Interface/blob/main/Images/GUI_overview.png?raw=true)
+
+![PySorter GUI Scripts-Manager](https://github.com/mikelval82/NeuroSorter-Interface/blob/main/Images/code_panel.png?raw=true)
 
 ## 4 Hotkeys
 **Ctrl+Up/Down** -> move across channels.
@@ -36,7 +44,3 @@ NeuroSorter is a spike cleaner and sorter. It works at three levels: First, it n
 **Ctrl+d** -> Send selected waveforms to noise, equivalent to Alt+0.
 
 **Ctrl+z** -> Undo, only available for the last modification.
-
-
-
-
