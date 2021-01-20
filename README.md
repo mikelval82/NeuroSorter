@@ -14,7 +14,6 @@ All dependencies can be installed using:
 
     pip install -r requirements.txt
 
-
 ## 2 Overview
 
 NeuroSorter is a spike cleaner and sorter. 
@@ -40,6 +39,7 @@ NeuroSorter is a spike cleaner and sorter.
 
 **Ctrl+z** -> Undo, only available for the last modification.
 
-
+## 4 Tutorial
+![Download Tutorial.mp4](https://github.com/mikelval82/NeuroSorter-Interface/blob/main/tutorial.mp4?raw=true)
 
 
