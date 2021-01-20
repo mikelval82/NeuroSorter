@@ -4,7 +4,7 @@ Note: This document covers the basic information to use NeuroSorter-Interface Be
 
 ## 1 Dependencies
 
-PyQt5, QtPy, h5py, umap-learn, seaborn, matplotlib, numpy, scikit-learn, scipy, similaritymeasures
+python 3.7, PyQt5, QtPy, h5py, umap-learn, seaborn, matplotlib, numpy, scikit-learn, scipy, similaritymeasures
 
 All dependencies can be installed using:
 
@@ -13,6 +13,12 @@ All dependencies can be installed using:
     cd NeuroSorter-Interface
 
     pip install -r requirements.txt
+    
+To run the GUI:
+    
+    cd AUTO_SPIKE_SORTING_GUI
+    
+    python3 AUTO_SPIKE_SORTING_GUI.py
 
 ## 2 Overview
 
