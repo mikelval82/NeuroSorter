@@ -22,7 +22,7 @@ To run the GUI:
 
 ## 2 Overview
 
-NeuroSorter is a spike cleaner and sorter. 
+NeuroSorter is a spike cleaner and sorter. ![Download Tutorial.mp4](https://github.com/mikelval82/NeuroSorter-Interface/blob/main/tutorial.mp4?raw=true)
 
 ## 3 NeuroSorter interface
 
@@ -44,8 +44,3 @@ NeuroSorter is a spike cleaner and sorter.
 **Ctrl+d** -> Send selected waveforms to noise, equivalent to Alt+0.
 
 **Ctrl+z** -> Undo, only available for the last modification.
-
-## 4 Tutorial
-![Download Tutorial.mp4](https://github.com/mikelval82/NeuroSorter-Interface/blob/main/tutorial.mp4?raw=true)
-
-
