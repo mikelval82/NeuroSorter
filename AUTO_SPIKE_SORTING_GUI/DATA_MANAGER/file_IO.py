@@ -24,8 +24,8 @@ class nev_manager:
             
             if file[-4:] == '.npy':
                 self.__python_dict(file)
-            elif file[-4:] == '.mat':
-                self.__mat_dict(file, self.ExperimentID)
+#            elif file[-4:] == '.mat':
+#                self.__mat_dict(file, self.ExperimentID)
             elif file[-4:] == '.nev':
                 self.__nev_dict(file, self.ExperimentID)
             self.ExperimentID += 1 
@@ -49,21 +49,21 @@ class nev_manager:
             np.save(filename, data)
             exp+=1
       
-    def __mat_dict(self, file, ExperimentID):
-        append_channelID = self.spike_dict['ChannelID'].append
-        append_TimeStamps = self.spike_dict['TimeStamps'].append
-        append_Waveforms = self.spike_dict['Waveforms'].append
-        append_UnitID = self.spike_dict['UnitID'].append
-        append_OldID= self.spike_dict['OldID'].append
-        append_ExperimentID = self.spike_dict['ExperimentID'].append
-        
-        with h5py.File(file, 'r') as file:
-            [append_channelID(channelID) for channelID in file['NEV']['Data']['Spikes'].get('Electrode')[:]]
-            [append_TimeStamps(timestamp) for timestamp in file['NEV']['Data']['Spikes'].get('TimeStamp')[:]]
-            [append_Waveforms( resample(waveform,48) ) for waveform in file['NEV']['Data']['Spikes'].get('Waveform')[:]]
-            [append_UnitID(1) for timestamp in file['NEV']['Data']['Spikes'].get('TimeStamp')[:]]
-            [append_OldID(None) for timestamp in file['NEV']['Data']['Spikes'].get('TimeStamp')[:]]
-            [append_ExperimentID(ExperimentID) for timestamp in file['NEV']['Data']['Spikes'].get('TimeStamp')[:]]
+#    def __mat_dict(self, file, ExperimentID):
+#        append_channelID = self.spike_dict['ChannelID'].append
+#        append_TimeStamps = self.spike_dict['TimeStamps'].append
+#        append_Waveforms = self.spike_dict['Waveforms'].append
+#        append_UnitID = self.spike_dict['UnitID'].append
+#        append_OldID= self.spike_dict['OldID'].append
+#        append_ExperimentID = self.spike_dict['ExperimentID'].append
+#        
+#        with h5py.File(file, 'r') as file:
+#            [append_channelID(channelID) for channelID in file['NEV']['Data']['Spikes'].get('Electrode')[:]]
+#            [append_TimeStamps(timestamp) for timestamp in file['NEV']['Data']['Spikes'].get('TimeStamp')[:]]
+#            [append_Waveforms( resample(waveform,48) ) for waveform in file['NEV']['Data']['Spikes'].get('Waveform')[:]]
+#            [append_UnitID(1) for timestamp in file['NEV']['Data']['Spikes'].get('TimeStamp')[:]]
+#            [append_OldID(None) for timestamp in file['NEV']['Data']['Spikes'].get('TimeStamp')[:]]
+#            [append_ExperimentID(ExperimentID) for timestamp in file['NEV']['Data']['Spikes'].get('TimeStamp')[:]]
            
     def __nev_dict(self, file, ExperimentID):
         # Version control

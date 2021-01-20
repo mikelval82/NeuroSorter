@@ -20,10 +20,7 @@ NeuroSorter is a spike cleaner and sorter. It works at three levels: First, it n
 
 ## 3 NeuroSorter interface
 
-
-![PySorter Scheme](https://raw.githubusercontent.com/AI-Druids/PySorter/master/Images/GUI_overview.png?token=AKY2HR2K6JKUG2FTQLKMXYK6R43TY)
-
-![PySorter Script_Manager](https://raw.githubusercontent.com/AI-Druids/PySorter/master/Images/code_panel.png?token=AKY2HR7H62MNICEUCJSVW4S6R43RK)
+![PySorter Scheme](https://github.com/[mikelval82]/[NeuroSorter-Interface]/blob/[main]/GUI_overview.png?raw=true)
 
 ## 4 Hotkeys
 **Ctrl+Up/Down** -> move across channels.
