@@ -320,7 +320,7 @@ class GUI_behaviour(QMainWindow, ui):
     def openFileNameDialog(self, btn):
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
-        fileTypes = 'Nev Files (*.nev);;NeuroExplorer Files (*.nex);;Python (*.npy)'
+        fileTypes = 'Nev Files (*.nev);;Python (*.npy)'
         fileNames, _ = QFileDialog.getOpenFileNames(self, 'QFileDialog.getOpenFileName()', '', fileTypes, options=options)
         for file in fileNames:
             self.log.myprint_in(file)
