@@ -7,7 +7,7 @@
 #%%
 from PY_blackrock.brpylib import NevFile, brpylib_ver
 from scipy.signal import resample
-import h5py
+#import h5py
 import numpy as np
 
 from decorators.time_consuming import timeit 

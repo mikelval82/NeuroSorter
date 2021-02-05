@@ -5,7 +5,7 @@
 @institutions: %(Dpto. de Inteligencia Artificial, Universidad Nacional de Educación a Distancia (UNED), Postdoctoral Researcher Instituto de Neurociencias UMH-CSIC)
 """
 #%%
-from DATA_MANAGER.file_IO import nev_manager 
+from DATA_MANAGER.file_IO_01 import nev_manager 
 from decorators.time_consuming import timeit 
 
 import numpy as np
@@ -19,7 +19,7 @@ class data_manager(nev_manager):
         
     def initialize_spike_containers(self):
         self.current ={'channelID':None,'unitID':None,'plotted':[],'selected':[]}
-        self.spike_dict = {'FileNames':[],'ExperimentID':[],'ChannelID':[],'UnitID':[],'OldID':[],'TimeStamps':[],'Waveforms':[]}
+        self.spike_dict = {'FileNames':[],'SamplingRate':None,'ExperimentID':[],'ChannelID':[],'UnitID':[],'OldID':[],'TimeStamps':[],'Waveforms':[],'Trigger':None}
          
     def show_channelID(self, channelID):
         channelID = int(channelID)

@@ -15,34 +15,26 @@ matplotlib.use('Qt5Agg')
 
 @timeit
 def run(spike_dict, current):
+    colours = plt.get_cmap('Set1')     
+    fs = spike_dict['SamplingRate']
+    experiments = np.unique(spike_dict['ExperimentID'])
 
-
-    index = current['plotted']
-    time_stamps = np.empty((1,len(index)))
-    wave_forms = np.empty((48,len(index)))
-    units = np.empty((1,len(index)))
-    for j in range(0,len(index)):
-        time_stamps[0,j] = (spike_dict["TimeStamps"][index[j]])/20 #TimeStamp of each spike is obtained 
-        wave_forms[:,j] = (spike_dict["Waveforms"][index[j]]) #Waveform of each spike is obtained
-        units[0,j] = spike_dict["UnitID"][index[j]]
+    for experiment in experiments:
         
-    # Plotting
-    colours = plt.get_cmap('Set1')    
-    #Create a variable with the colours of interest
-    plt.figure() #Create a figure
-    plt.xlabel('Time (ms)')
-    plt.ylabel('uV')
-    for j in np.unique(units):
-        trans = np.where(units==j) 
-        #Select the spikes in each unit
-        trans = trans[1]
+        waveforms = [spike_dict['Waveforms'][it] for it in current['plotted'] if spike_dict['ExperimentID'][it] == experiment]
+        timestamps = [spike_dict['TimeStamps'][it] for it in current['plotted'] if spike_dict['ExperimentID'][it] == experiment]
+        units = [spike_dict['UnitID'][it] for it in current['plotted'] if spike_dict['ExperimentID'][it] == experiment]
 
-        color = colours(int(j))
-        for i in trans:
-            k = np.round(time_stamps[0,i]) #Round the time stamps
-            k = int(k)
-            time_position = np.arange(k, k+48) #Give space to the spike
+        print(timestamps)
+        plt.figure()
+        for wave, stamp, unit in zip(waveforms, timestamps, units):
+            point = np.argmin(wave)
+            x = np.hstack( (np.arange(stamp-point,stamp), np.arange(stamp, stamp+len(wave)-point)) )
+            plt.plot(x/fs, wave, color=colours(unit))
+        
+        fs = spike_dict['SamplingRate']
+        for trigger in spike_dict['Trigger']:
+            plt.axvline(x=trigger/fs, color='m')
             
-            plt.plot(time_position, wave_forms[:,i], color=color) 
         plt.show()
                 

@@ -38,7 +38,7 @@ class spike_denoiser:
         return True
         
     def run(self, waveforms, n_neighbors=10, min_dist=.3, n_components=2, metric='manhattan'):
-        print(self.__load_references())
+        self.__load_references()
         
         if waveforms.shape[0] <= n_neighbors:
             print('paso por tengo menos formas de onda que vecinos')
@@ -47,9 +47,7 @@ class spike_denoiser:
             print('paso por tengo suficientes')
             reducer = umap.UMAP( n_neighbors=n_neighbors, min_dist=min_dist, n_components=n_components, metric=metric, set_op_mix_ratio=0.2 )
             embedding = reducer.fit_transform(waveforms)
-            print(embedding.shape)
             labels = self._compute_BIC(embedding)
-            print(np.unique(labels))
             try:
                 outliers = self._filter_outliers(embedding)
                 print(len(outliers))
@@ -64,7 +62,6 @@ class spike_denoiser:
         lowest_bic = np.infty
         n_components_range = range(2, 7)
         for n_components in n_components_range:
-            print('num components ', n_components, lowest_bic, best_gmm)
             # Fit a Gaussian mixture with EM
             try:
                 gmm = mixture.GaussianMixture(n_components=n_components,covariance_type='diag').fit(latent_features)
@@ -74,9 +71,7 @@ class spike_denoiser:
                     lowest_bic = bic_temp
                     best_gmm = gmm
             except:
-                pass
-            print('termino de calcular el gmm en el bucle')
-    
+                pass    
         
         unit_IDs = best_gmm.predict(latent_features)
         return unit_IDs
@@ -115,7 +110,7 @@ class spike_denoiser:
             std = np.sum(yerr_zsc) / 48
             
             # -- plot the figures ------------------------
-            if label != -1 and not is_noise and ccorr > .7 and p[1]*100 > -100 and p[1]*100 < 150 and df < 5 and std < .6: 
+            if label != -1 and not is_noise and ccorr > .7 and p[1]*100 > -100 and p[1]*100 < 150 and df < 5 and std < .5: 
                 unit_IDs[index] = 1
                             
         return unit_IDs

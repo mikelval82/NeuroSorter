@@ -8,6 +8,7 @@
 import umap
 import numpy as np
 from sklearn import mixture
+from sklearn.preprocessing import MinMaxScaler
 import similaritymeasures as sm
 
 class sorter_umap:
@@ -50,6 +51,8 @@ class sorter_umap:
         return unit_IDs
     
     def _detect_similarUnits(self, units, spikes):
+        spikes = MinMaxScaler().fit_transform(spikes)
+        
         means = []
         for label in np.unique(units):
             positions = [idx for idx,unit in enumerate(units) if unit == label]
@@ -69,7 +72,7 @@ class sorter_umap:
             for aux, idx in zip(aux_means,aux_myindex):
                 print( 'distances ', sm.frechet_dist(main_mean, aux) )
                 
-                if sm.frechet_dist(main_mean, aux) < 10:
+                if sm.frechet_dist(main_mean, aux) < .3:
                     equal.append(idx)
                 else:
                     distinct.append(idx)

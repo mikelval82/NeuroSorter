@@ -6,6 +6,7 @@
 """
 #%%
 from decorators.time_consuming import timeit 
+from seaborn import distplot
 
 import numpy as np 
 import matplotlib.pyplot as plt
@@ -14,8 +15,8 @@ matplotlib.use('Qt5Agg')
 
 @timeit
 def run(spike_dict, current):
-
-    cmap = plt.get_cmap('Set1')
+    fs = spike_dict['SamplingRate']    
+    colours = plt.get_cmap('Set1') 
     
     channelMap = np.array([None, 1,2,3,4,5,6,7,8,None,
                         9,10,11,12,13,14,15,16,17,18,
@@ -38,9 +39,7 @@ def run(spike_dict, current):
                             83,84,82,45,41,39,37,35,33,1,
                             81,80,78,76,74,72,70,68,66,2,
                             None,79,77,75,73,71,69,67,65,None])
-    
-    plot_arr = np.arange(100).reshape((10, 10)) / 99.
-    
+        
     experiments = np.unique(spike_dict['ExperimentID'])
 
     for experiment in experiments:
@@ -48,19 +47,18 @@ def run(spike_dict, current):
         fig = plt.figure()
         for channel in range(1,97):
             index = [it for it, channelID in enumerate(spike_dict['ChannelID']) if channelID == channel and spike_dict['ExperimentID'][it] == experiment and spike_dict['UnitID'][it] > -1]
-            waveforms = [spike_dict['Waveforms'][idx] for idx in index]
-            units = [spike_dict['UnitID'][idx] for idx in index]
+            timestamps = [spike_dict['TimeStamps'][it]/fs for it in index]
+            units = [spike_dict['UnitID'][it] for it in index]       
 
             idx = [idx for idx,ch in enumerate(channelMap) if ch == channel][0]
         
             plt.subplot(10, 10, idx+1)
-            for wave,unit in zip(waveforms,units):
-                plt.plot(wave, color=cmap(plot_arr[unit%10, unit%10])) 
-            
+            for unit in np.unique(units):
+                stamps = [stamp for it,stamp in enumerate(timestamps) if units[it] == unit]
+                if len(stamps) > 1:
+                    distplot(stamps, hist=False,  rug=True)
+    
             plt.axis('off')
             plt.title('E'+str(electrodeMap[idx])+'CH'+str(channelMap[idx]))
         fig.tight_layout()
         plt.show()
-
-
-        

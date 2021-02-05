@@ -14,9 +14,9 @@ matplotlib.use('Qt5Agg')
 
 @timeit
 def run(spike_dict, current):
-    fs = 30000
+    fs = spike_dict['SamplingRate']
     experiments = np.unique(spike_dict['ExperimentID'])
-    print(experiments)
+
     for experiment in experiments:
         
         channels = np.unique([ch for it, ch in enumerate(spike_dict['ChannelID']) if spike_dict['ExperimentID'][it] == experiment])
@@ -28,6 +28,9 @@ def run(spike_dict, current):
         
             if len(time_ch>0):
                 plt.plot(time_ch, np.transpose(channel*np.ones([1,len(time_ch)])),'|b')
+                
+        for trigger in spike_dict['Trigger']:
+            plt.axvline(x=trigger/fs, color='m')
             
         plt.xlabel('Time[s]')
         plt.ylabel('Channel')  
