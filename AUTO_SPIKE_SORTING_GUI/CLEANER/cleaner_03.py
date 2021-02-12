@@ -89,9 +89,7 @@ class spike_denoiser:
             p = np.poly1d(z)
             df = similaritymeasures.frechet_dist(np.vstack((zscore(x),zscore(reference))), np.vstack((zscore(x),zscore(y))))
             yerr_zsc = StandardScaler().fit_transform(waveforms[labels == label].T).T.std(axis=0)
-            std = np.sum(yerr_zsc) / 48
-            print('que pasa con intervals ', intervals)
-            print((not intervals or intervals[0][0] > 0 or len(intervals) > 1))
+            std = np.sum(yerr_zsc) / waveforms.shape[1]
             # -- plot the figures ------------------------
             if label != -1 and not (not intervals or intervals[0][0] > 0 or len(intervals) > 1) and not is_noise and ccorr > .7 and p[1]*100 > -100 and p[1]*100 < 150 and df < 5 and std < .5: 
                 unit_IDs[index] = 1
