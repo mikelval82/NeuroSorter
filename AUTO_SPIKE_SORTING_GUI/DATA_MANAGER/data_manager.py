@@ -19,7 +19,7 @@ class data_manager(nev_manager):
         
     def initialize_spike_containers(self):
         self.current ={'channelID':None,'unitID':None,'plotted':[],'selected':[]}
-        self.spike_dict = {'FileNames':[],'SamplingRate':None,'ExperimentID':[],'ChannelID':[],'UnitID':[],'OldID':[],'TimeStamps':[],'Waveforms':[],'Trigger':None}
+        self.spike_dict = {'FileNames':[],'SamplingRate':[],'ExperimentID':[],'ChannelID':[],'UnitID':[],'OldID':[],'TimeStamps':[],'Waveforms':[],'Trigger':[]}
          
     def show_channelID(self, channelID):
         channelID = int(channelID)
@@ -94,30 +94,29 @@ class data_manager(nev_manager):
 
         
     @timeit        
-    def clean_by_cross_talk(self, window = 10, fs=30000):
+    def clean_by_cross_talk(self, window=1, fs=30000):
         # reset old unit for undo action
         self.spike_dict['OldID'] = [None for _ in self.spike_dict['OldID']]
-        
         for experimentID in np.unique(self.spike_dict['ExperimentID']):
             
             
             index = np.array([it for it, exp in enumerate(self.spike_dict['ExperimentID']) if exp == experimentID and self.spike_dict['UnitID'][it] != -1])
-            
-            bin = int(fs*window/1000)
-            max = np.array(self.spike_dict['TimeStamps'])[index].max()
-            temporal_pattern = np.zeros( (96, int(max/bin)) )
+            bin_ = int(fs*window/1000)
+            max_ = np.array(self.spike_dict['TimeStamps'])[index].max()
+            num_channels = len(np.unique(self.spike_dict['ChannelID']))
+            temporal_pattern = np.zeros( (num_channels, int(max_/bin_)) )
             
             positions = []
             cols = []
             for it in index:
                 stamp = self.spike_dict['TimeStamps'][it]
                 ch = self.spike_dict['ChannelID'][it]
-                position = int(stamp/bin)
+                position = int(stamp/bin_)
                 temporal_pattern[ch-1, position-1] = 1
                 
                 positions.append(it)
                 cols.append(position)
-   
+
             for col in range( temporal_pattern.shape[1] ):
                 if np.sum( temporal_pattern[:,col] ) >= 10:
                     iters = [it for it, x in zip(positions, cols) if x == col+1]
@@ -135,7 +134,8 @@ class data_manager(nev_manager):
             else:
                 index = np.array( [it for it, channel  in enumerate(self.spike_dict['ChannelID']) if (channel == int(self.current['channelID']) and self.spike_dict['UnitID'][it] != -1)] )
             waveforms = np.array(self.spike_dict['Waveforms'])[index]
-            scores = self.spk.run(waveforms, n_neighbors=n_neighbors, min_dist=min_dist, metric=metric)
+            timestamps = np.array(self.spike_dict['TimeStamps'])[index]
+            scores = self.spk.run(waveforms, timestamps, self.spike_dict['SamplingRate'], n_neighbors=n_neighbors, min_dist=min_dist, metric=metric)
             spike_index = index[scores==1]
             noise_index = index[scores==0]
 
@@ -156,16 +156,12 @@ class data_manager(nev_manager):
         self.spike_dict['OldID'] = [None for _ in self.spike_dict['OldID']]
             
         for channelID in np.unique(self.spike_dict['ChannelID']):
-            print('que channel id ', channelID)
             index = np.array([it for it, channel in enumerate(self.spike_dict['ChannelID']) if channel == channelID and self.spike_dict['UnitID'][it] != -1])
-            print(len(index))
             waveforms = np.array([self.spike_dict['Waveforms'][it] for it in index])
-            print(waveforms.shape)
-            scores = self.spk.run(waveforms, n_neighbors=n_neighbors, min_dist=min_dist, metric=metric)
-            print(len(scores))
+            timestamps = np.array(self.spike_dict['TimeStamps'])[index]
+            scores = self.spk.run(waveforms, timestamps, self.spike_dict['SamplingRate'], n_neighbors=n_neighbors, min_dist=min_dist, metric=metric)
             spike_index = index[scores==1]
             noise_index = index[scores==0]
-
             # reset old unit for undo action
             self.spike_dict['OldID'] = [None for _ in self.spike_dict['OldID']]
             for it in spike_index:
@@ -182,17 +178,14 @@ class data_manager(nev_manager):
             channelID = int(self.current['channelID'])
             unitID = int(self.current['unitID'])
             index_channel = np.array( [it for it, channel  in enumerate(self.spike_dict['ChannelID']) if (channel == channelID and self.spike_dict['UnitID'][it] == unitID and self.spike_dict['UnitID'][it] != -1)] )
-            
             # get the corresponding waveforms
             waveforms = np.array(self.spike_dict['Waveforms'])[index_channel]
             # compute clustering
             UnitIDs = self.ae.sort_spikes(waveforms, n_neighbors=n_neighbors, min_dist=min_dist, metric=metric)
-            
             # reset old unit for undo action
             self.spike_dict['OldID'] = [None for _ in self.spike_dict['OldID']]
             for index in index_channel:
                 self.spike_dict['OldID'][index] = self.spike_dict['UnitID'][index]
-                
             # select the maximun unitID value for the current plotted channel
             index_ch = np.array( [it for it, channel in enumerate(self.spike_dict['ChannelID']) if (channel == channelID and self.spike_dict['UnitID'][it] != -1)] )
             max_unitID = np.array(self.spike_dict['UnitID'])[index_ch].max()+1
@@ -202,12 +195,10 @@ class data_manager(nev_manager):
                 self.spike_dict['OldID'][global_index] = self.spike_dict['UnitID'][global_index]
                 # second, the new ID is set
                 self.spike_dict['UnitID'][global_index] = int(UnitIDs[index]) + max_unitID
-                
             # now correct the unitIDs of all units in the channel, except Noise
             unitIDs_2correct = np.unique( np.asarray(self.spike_dict['UnitID'])[index_ch] )
             for index in index_ch:
                 self.spike_dict['UnitID'][index] = list(unitIDs_2correct).index(self.spike_dict['UnitID'][index])+1
-                
             # current unit set to all, current channel is mantained
             self.current['unitID'] = 'All'
             # plotted index is set to current channel

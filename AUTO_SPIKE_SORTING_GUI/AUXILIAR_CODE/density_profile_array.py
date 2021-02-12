@@ -16,7 +16,6 @@ matplotlib.use('Qt5Agg')
 @timeit
 def run(spike_dict, current):
     fs = spike_dict['SamplingRate']    
-    colours = plt.get_cmap('Set1') 
     
     channelMap = np.array([None, 1,2,3,4,5,6,7,8,None,
                         9,10,11,12,13,14,15,16,17,18,

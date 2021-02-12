@@ -319,7 +319,7 @@ class Ui_MainWindows(object):
         MainWindows.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindows)
-        self.windows_tabWidget.setCurrentIndex(1)
+        self.windows_tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindows)
 
     def retranslateUi(self, MainWindows):
@@ -341,7 +341,7 @@ class Ui_MainWindows(object):
         self.metric_comboBox.setItemText(8, _translate("MainWindows", "correlation"))
         self.label_4.setText(_translate("MainWindows", "n_neighbors"))
         self.all_denoising_btn.setText(_translate("MainWindows", "Denoising"))
-        self.TemporalThreshold_Edit.setText(_translate("MainWindows", "10"))
+        self.TemporalThreshold_Edit.setText(_translate("MainWindows", "1"))
         self.min_dist_edit.setText(_translate("MainWindows", "0.3"))
         self.AmplitudeThreshold_Edit.setText(_translate("MainWindows", "[-1000, 1000]"))
         self.temporal_threshold_btn.setText(_translate("MainWindows", "CrossTalk (ms)"))

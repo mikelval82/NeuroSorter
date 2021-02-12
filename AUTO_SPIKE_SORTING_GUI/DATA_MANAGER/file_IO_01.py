@@ -31,17 +31,19 @@ class nev_manager:
     def save(self, path): 
         exp = 0
         for file in self.spike_dict['FileNames']:
-            data = {'ChannelID':[], 'UnitID':[], 'TimeStamps':[], 'Waveforms':[]}
+            data = {'ChannelID':[], 'UnitID':[], 'TimeStamps':[], 'Waveforms':[], 'SamplingRate':None, 'Trigger':None}
             data['ChannelID'] = [val for it, val in enumerate(self.spike_dict['ChannelID']) if self.spike_dict['ExperimentID'][it] == exp]
             data['UnitID'] = [val for it, val in enumerate(self.spike_dict['UnitID']) if self.spike_dict['ExperimentID'][it] == exp]
             data['TimeStamps'] = [val for it, val in enumerate(self.spike_dict['TimeStamps']) if self.spike_dict['ExperimentID'][it] == exp]
             data['Waveforms'] = [val for it, val in enumerate(self.spike_dict['Waveforms']) if self.spike_dict['ExperimentID'][it] == exp]
-            print(path, file)
+            data['SamplingRate'] = self.spike_dict['SamplingRate'][exp]
+            data['Trigger'] = self.spike_dict['Trigger'][exp]
+            
             if path.split('/')[-1] != 'processed_':
                 filename = path[:-10] + '_' + str(exp) + '.npy'
             else:
                 filename = path + file[:-4] + '.npy'
-            print(filename)
+
             np.save(filename, data)
             exp+=1
       
@@ -52,8 +54,8 @@ class nev_manager:
         segment = reader.read_segment()
         trigger = segment.events[0]
         # -- set the trigger
-        self.spike_dict['SamplingRate'] = segment.spiketrains[0].sampling_rate.magnitude 
-        self.spike_dict['Trigger'] = trigger.times.magnitude * segment.spiketrains[0].sampling_rate.magnitude
+        self.spike_dict['SamplingRate'].append( segment.spiketrains[0].sampling_rate.magnitude )
+        self.spike_dict['Trigger'].append( trigger.times.magnitude * segment.spiketrains[0].sampling_rate.magnitude )
         # -- preload functions
         append_channelID = self.spike_dict['ChannelID'].append
         append_TimeStamps = self.spike_dict['TimeStamps'].append
