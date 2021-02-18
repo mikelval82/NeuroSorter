@@ -4,7 +4,7 @@ Note: This document covers the basic information to use NeuroSorter-Interface Be
 
 ## 1 Dependencies
 
-python 3.7, PyQt5, QtPy, h5py, umap-learn, seaborn, matplotlib, numpy, scikit-learn, scipy, similaritymeasures
+python 3.7, PyQt5, QtPy, umap-learn, seaborn, matplotlib, numpy, scikit-learn, scipy, similaritymeasures, networkx, python-louvain, neo
 
 All dependencies can be installed using:
 
