@@ -87,7 +87,6 @@ class spike_denoiser:
             yerr_zsc = StandardScaler().fit_transform(waveforms[labels == label].T).T.std(axis=0)
             std = np.sum(yerr_zsc) / waveforms.shape[1]
             # -- plot the figures ------------------------
-            print('label ', label, ' isnoise ', is_noise, ' ccorr ', ccorr, ' p ', p, ' df ', df , ' std ', std)
             if label != -1 and not is_noise and ccorr > .7 and p[1]*100 > -100 and p[1]*100 < 150 and df < 5 and std < .5: 
                 unit_IDs[index] = 1
                             

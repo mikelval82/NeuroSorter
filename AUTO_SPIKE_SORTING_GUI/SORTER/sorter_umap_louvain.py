@@ -63,7 +63,6 @@ class sorter:
                 # -- check spike alignment --
                 corr = signal.correlate(aux, main_mean)
                 desplazamiento = int(np.argmax(corr) - corr.size/2)
-                print('desplazamiento ', desplazamiento)
 
                 if abs(desplazamiento) < 5:
                     if desplazamiento < 0:
@@ -79,8 +78,6 @@ class sorter:
                     
                 # -- check similarity ---
                 similarity = sm.dtw(main_mean_phase, aux_phase)[0]
-                print( 'distances ', similarity )
-                print('index ', index ,' dynamic threshold ', (1/np.mean(num_spikesXcluster))+threshold)
                 if similarity < (1/np.mean(num_spikesXcluster))+threshold:
                     equal.append(idx)
                 else:

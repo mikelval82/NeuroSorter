@@ -176,7 +176,6 @@ class data_manager(nev_manager):
             for channelID in np.unique(self.spike_dict['ChannelID']):
         
                 index = np.array([it for it, channel in enumerate(self.spike_dict['ChannelID']) if self.spike_dict['ExperimentID'][it] == experimentID and channel == channelID and self.spike_dict['UnitID'][it] != -1])
-                print(index)
                 waveforms = np.array([self.spike_dict['Waveforms'][it] for it in index])
                 timestamps = np.array([self.spike_dict['TimeStamps'][it] for it in index])
                 
