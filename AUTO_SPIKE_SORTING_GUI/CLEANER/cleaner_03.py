@@ -9,7 +9,6 @@
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 import umap
-from unidip import UniDip
 
 import networkx as nx
 import community.community_louvain as community_louvain
@@ -41,9 +40,8 @@ class spike_denoiser:
         
     def run(self, waveforms, timestamps, sampling_rate, n_neighbors=10, min_dist=.3, n_components=2, metric='manhattan'):
         self.__load_references()
-        
-        if waveforms.shape[0] <= n_neighbors:
-            unit_IDs = self._filter_spikes(waveforms, np.zeros((waveforms.shape[0],), dtype=int))
+        if len(waveforms) <= n_neighbors:
+            unit_IDs = np.array([0]*len(waveforms))#self._filter_spikes(waveforms, np.zeros((len(waveforms),), dtype=int))#
         else:
             waveforms_norm = np.array([(wave - waveforms.min())/(waveforms.max()-waveforms.min()) for it,wave in enumerate(waveforms)])
             reducer = umap.UMAP( n_neighbors=n_neighbors, min_dist=min_dist, 
@@ -64,10 +62,8 @@ class spike_denoiser:
                 
         for label in check:
             # -- select units from one cluster
-            index = [i for i, x in enumerate(labels==label) if x]
+            index = [i for i,x in enumerate(labels==label) if x]
             # ---  compute the features ----------------
-            intervals = self.bimodality_test(timestamps, waveforms, index, sampling_rate)
-            
             x = np.arange(1,49)
             y = waveforms[labels == label].mean(axis=0)
             
@@ -91,26 +87,14 @@ class spike_denoiser:
             yerr_zsc = StandardScaler().fit_transform(waveforms[labels == label].T).T.std(axis=0)
             std = np.sum(yerr_zsc) / waveforms.shape[1]
             # -- plot the figures ------------------------
-            if label != -1 and not (not intervals or intervals[0][0] > 0 or len(intervals) > 1) and not is_noise and ccorr > .7 and p[1]*100 > -100 and p[1]*100 < 150 and df < 5 and std < .5: 
+            print('label ', label, ' isnoise ', is_noise, ' ccorr ', ccorr, ' p ', p, ' df ', df , ' std ', std)
+            if label != -1 and not is_noise and ccorr > .7 and p[1]*100 > -100 and p[1]*100 < 150 and df < 5 and std < .5: 
                 unit_IDs[index] = 1
                             
         return unit_IDs
+    
+    
 
-
-    def bimodality_test(self, timestamps, spikes, index, sampling_rate):        
-        time_stamps = np.empty((len(index),))
-        for j in range(0,len(index)):
-            time_stamps[j] = (timestamps[index[j]])/sampling_rate #TimeStamp of each spike is obtained 
-       
-        
-        ISI = []
-        for k in range(0,len(time_stamps)-1): #Goes through all spikes
-            ISI.append(time_stamps[k+1]-time_stamps[k]) #Computed delay between two spikes
-        ISI = np.array(ISI)
-        
-        
-        intervals = UniDip(ISI).run()
-        return intervals
 
     
     

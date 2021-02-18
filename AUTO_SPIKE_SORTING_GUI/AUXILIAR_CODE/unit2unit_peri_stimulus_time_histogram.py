@@ -24,7 +24,7 @@ matplotlib.use('Qt5Agg')
 @timeit
 def run(spike_dict, current):
     trigger = 2
-    unit = 3
+    unit = 1
     bin_width = 100
     range_ = np.array([-.2,.3])
 
@@ -56,6 +56,7 @@ def run(spike_dict, current):
         ax2.set_xlabel('Trial Window, s',fontsize=16)
         ax2.set_ylabel('Trial Number',fontsize=16)
         ax2.set_title('Raster\nChannel {0}, n = {1} trials'.format( current['channelID'], len(trigger_timestamps) ))
+        plt.show()
                         
                         
                         

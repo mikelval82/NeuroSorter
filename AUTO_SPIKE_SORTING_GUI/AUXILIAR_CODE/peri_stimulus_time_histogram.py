@@ -38,7 +38,7 @@ def run(spike_dict, current):
         
         ax1.set_xlim(left=range_[0], right=range_[1])
         ax1.set_ylabel('Count',fontsize=16)
-        ax1.set_title('Peristimulus\nChannel {0}, n = {1} trials'.format(current['channelID'], len(triggers)))
+        ax1.set_title('Peristimulus\nExpID {0}, Channel {1}, n = {2} trials'.format(experiment, current['channelID'], len(triggers)))
     
         ax2 = fig.add_subplot(212)
         for i in range(triggers.size - 1):
@@ -49,7 +49,7 @@ def run(spike_dict, current):
         ax2.set_xlabel('Trial Window, s',fontsize=16)
         ax2.set_ylabel('Trial Number',fontsize=16)
         ax2.set_title('Raster\nChannel {0}, n = {1} trials'.format( current['channelID'], len(triggers) ))
-                    
+        plt.show()
                     
                     
 
