@@ -23,4 +23,5 @@ def run(spike_dict, current):
     for file in files:
         plt.figure()  
         plt.plot(np.load(mypath+file), 'c', linewidth=4)
+        plt.title(file[:-4])
     plt.show()

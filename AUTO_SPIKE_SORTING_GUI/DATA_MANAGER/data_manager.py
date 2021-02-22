@@ -105,13 +105,13 @@ class data_manager(nev_manager):
             # compute global average firing rate
             bin_ = int(self.spike_dict['SamplingRate'][experimentID]*window/1000)
             max_ = np.max(self.spike_dict['TimeStamps'])
-            num_channels = len(self.spike_dict['ChannelID'])
+            num_channels = len(np.unique(self.spike_dict['ChannelID']))
             temporal_pattern = np.zeros( (num_channels, int(max_/bin_)) )
-    
+            
             for it in index:
                 stamp = self.spike_dict['TimeStamps'][it]
                 temporal_pattern[self.spike_dict['ChannelID'][it]-1, int(stamp/bin_)-1] = 1
-                
+             
             global_FiringRate = np.mean(temporal_pattern, axis=0)
             # -------------- a threshold must be specified automatically ------
             # compute the amplitude envelope over the global firing rate
@@ -145,26 +145,23 @@ class data_manager(nev_manager):
             # reset old unit for undo action
             self.spike_dict['OldID'] = [None for _ in self.spike_dict['OldID']]
             channelID = int(self.current['channelID'])
-                
-            for experimentID in np.unique(self.spike_dict['ExperimentID']):
-                
-                if self.current['unitID'] != 'All':
-                    unitID = int(self.current['unitID'])
-                    index = np.array( [it for it, channel  in enumerate(self.spike_dict['ChannelID']) if self.spike_dict['ExperimentID'][it] == experimentID and channel == channelID and self.spike_dict['UnitID'][it] == unitID and self.spike_dict['UnitID'][it] != -1] )
-                else:
-                    index = np.array( [it for it, channel  in enumerate(self.spike_dict['ChannelID']) if self.spike_dict['ExperimentID'][it] == experimentID and channel == channelID and self.spike_dict['UnitID'][it] != -1] )
-                waveforms = np.array([self.spike_dict['Waveforms'][it] for it in index])
-                timestamps = np.array([self.spike_dict['TimeStamps'][it] for it in index])
-                scores = self.spk.run(waveforms, timestamps, self.spike_dict['SamplingRate'][experimentID], n_neighbors=n_neighbors, min_dist=min_dist, metric=metric)
-                spike_index = index[scores==1]
-                noise_index = index[scores==0]
-    
-                for it in spike_index:
-                    self.spike_dict['OldID'][it] = self.spike_dict['UnitID'][it]
-                for it in noise_index:
-                    self.spike_dict['OldID'][it] = self.spike_dict['UnitID'][it]
-                    self.spike_dict['UnitID'][it] = -1  
-                
+                                
+            if self.current['unitID'] != 'All':
+                unitID = int(self.current['unitID'])
+                index = np.array( [it for it, channel  in enumerate(self.spike_dict['ChannelID']) if channel == channelID and self.spike_dict['UnitID'][it] == unitID and self.spike_dict['UnitID'][it] != -1] )
+            else:
+                index = np.array( [it for it, channel  in enumerate(self.spike_dict['ChannelID']) if channel == channelID and self.spike_dict['UnitID'][it] != -1] )
+            waveforms = np.array([self.spike_dict['Waveforms'][it] for it in index])
+            scores = self.spk.run(waveforms, n_neighbors=n_neighbors, min_dist=min_dist, metric=metric)
+            spike_index = index[scores==1]
+            noise_index = index[scores==0]
+
+            for it in spike_index:
+                self.spike_dict['OldID'][it] = self.spike_dict['UnitID'][it]
+            for it in noise_index:
+                self.spike_dict['OldID'][it] = self.spike_dict['UnitID'][it]
+                self.spike_dict['UnitID'][it] = -1  
+            
         return self.current['plotted']
 
     @timeit
@@ -172,23 +169,21 @@ class data_manager(nev_manager):
         # reset old unit for undo action
         self.spike_dict['OldID'] = [None for _ in self.spike_dict['OldID']]
     
-        for experimentID in np.unique(self.spike_dict['ExperimentID']):
-            for channelID in np.unique(self.spike_dict['ChannelID']):
-        
-                index = np.array([it for it, channel in enumerate(self.spike_dict['ChannelID']) if self.spike_dict['ExperimentID'][it] == experimentID and channel == channelID and self.spike_dict['UnitID'][it] != -1])
-                waveforms = np.array([self.spike_dict['Waveforms'][it] for it in index])
-                timestamps = np.array([self.spike_dict['TimeStamps'][it] for it in index])
-                
-                scores = self.spk.run(waveforms, timestamps, self.spike_dict['SamplingRate'][experimentID], n_neighbors=n_neighbors, min_dist=min_dist, metric=metric)
-                
-                spike_index = index[scores==1]
-                noise_index = index[scores==0]
+        for channelID in np.unique(self.spike_dict['ChannelID']):
     
-                for it in spike_index:
-                    self.spike_dict['OldID'][it] = self.spike_dict['UnitID'][it]
-                for it in noise_index:
-                    self.spike_dict['OldID'][it] = self.spike_dict['UnitID'][it]
-                    self.spike_dict['UnitID'][it] = -1  
+            index = np.array([it for it, channel in enumerate(self.spike_dict['ChannelID']) if channel == channelID and self.spike_dict['UnitID'][it] != -1])
+            waveforms = np.array([self.spike_dict['Waveforms'][it] for it in index])
+            
+            scores = self.spk.run(waveforms, n_neighbors=n_neighbors, min_dist=min_dist, metric=metric)
+            
+            spike_index = index[scores==1]
+            noise_index = index[scores==0]
+
+            for it in spike_index:
+                self.spike_dict['OldID'][it] = self.spike_dict['UnitID'][it]
+            for it in noise_index:
+                self.spike_dict['OldID'][it] = self.spike_dict['UnitID'][it]
+                self.spike_dict['UnitID'][it] = -1  
                 
         return self.current['plotted']    
 

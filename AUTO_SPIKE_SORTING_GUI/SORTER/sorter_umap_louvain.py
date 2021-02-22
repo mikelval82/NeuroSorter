@@ -8,7 +8,6 @@
 import umap
 import numpy as np
 from scipy import signal
-
 import networkx as nx
 import community.community_louvain as community_louvain
 import similaritymeasures as sm
@@ -23,7 +22,8 @@ class sorter:
         else:
             # scaling
             spikes = spikes[:,10:45]
-            spikes_norm = np.array([(wave - spikes.min())/(spikes.max()-spikes.min()) for it,wave in enumerate(spikes)])
+            min_, max_ = spikes.min(), spikes.max()
+            spikes_norm = np.array([(spk - min_)/(max_ - min_) for spk in spikes])
             # compute latent features
             reducer = umap.UMAP( n_neighbors=min([n_neighbors,int(np.ceil(len(spikes)/n_neighbors))]), min_dist=min_dist, n_components=n_components, metric=metric )
             reducer.fit_transform(spikes_norm)
@@ -33,12 +33,12 @@ class sorter:
             unit_IDs = np.array([data[1]+1 for data in list(partition.items())])
             # revisite clusters
             if len(np.unique(unit_IDs)) > 1:
-                mylist = self._detect_similarUnits(unit_IDs, spikes_norm, threshold=1)
+                mylist = self._detect_similarUnits(unit_IDs, spikes_norm, threshold=.7)
                 unit_IDs = self._merge_similarClusters(mylist, unit_IDs, spikes_norm)
             
         return unit_IDs
   
-    def _detect_similarUnits(self, units, spikes, threshold=1):
+    def _detect_similarUnits(self, units, spikes, threshold=.8):
         means = []
         num_spikesXcluster = []
         for label in np.unique(units):
@@ -78,6 +78,10 @@ class sorter:
                     
                 # -- check similarity ---
                 similarity = sm.dtw(main_mean_phase, aux_phase)[0]
+                print('-------------------------------------------------')
+                print('umbral dinamico ', (1/np.mean(num_spikesXcluster[index]))+threshold)
+                print('index ', index, ' num_spikesXcluster ', num_spikesXcluster)
+                print('similarity ', similarity)
                 if similarity < (1/np.mean(num_spikesXcluster))+threshold:
                     equal.append(idx)
                 else:

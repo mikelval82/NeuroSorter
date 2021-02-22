@@ -118,8 +118,6 @@ class GUI_behaviour(QMainWindow, ui):
             else:
                 self.U2ID_comboBox.setCurrentIndex(int(unit))
             index = self.dmg.selected_unit2ID(self.U2ID_comboBox.currentText())
-            print(len(index))
-            print('selected unit 2 id U2ID_comboBox, channel_comboBox, unit_comboBox', self.U2ID_comboBox.currentText(), self.channel_comboBox.currentText(), self.unit_comboBox.currentText())
             self.update_unit_combobox(self.channel_comboBox.currentText(), self.unit_comboBox.currentText())
             self.update_view(index)
 
@@ -142,7 +140,7 @@ class GUI_behaviour(QMainWindow, ui):
         self.log.myprint_out('ACTION == Cross talk analysis is done!')
         self.update_unit_combobox(self.channel_comboBox.currentText(), self.unit_comboBox.currentText())
         self.update_view(index)
-
+        
     def delete(self):
         self.log.myprint_out('ACTION == Delete')
         index = self.dmg.delete()
