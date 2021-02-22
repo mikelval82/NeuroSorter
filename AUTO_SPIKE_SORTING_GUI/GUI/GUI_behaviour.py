@@ -170,17 +170,16 @@ class GUI_behaviour(QMainWindow, ui):
             self.log.myprint_out('ACTION == Spikes sorting is done!')
             self.update_unit_combobox(self.channel_comboBox.currentText(), 'All')
             self.update_view(index)
-
+            
     def all_in_one_step(self):
         self.log.myprint('ACTION == Automatic analysis is in progress...')
-        self.update_cross_talk()
-        self.log.myprint_out('ACTION == Cross talk is done!')
-        self.update_amplitude_threshold()
-        self.log.myprint_out('ACTION == Amplitude threshold is done!')
-        self.dmg.clean_all(n_neighbors=15, min_dist=0.1, metric='manhattan')
-        self.log.myprint_out('ACTION == Spikes denoising is done!')
-        [index, _] = self.dmg.sort_all(n_neighbors=15, min_dist=0.1, metric='manhattan')
-        self.log.myprint_out('ACTION == Spikes sorting is done!')
+        window = self.TemporalThreshold_Edit.text()
+        threshold = self.AmplitudeThreshold_Edit.text()
+        r_min = int(threshold.split(',')[0].split('[')[1])
+        r_max = int(threshold.split(',')[1].split(']')[0])
+        [index, time_consumed] = self.dmg.fully_automatic(window=(int(window)), r_min=r_min, r_max=r_max)
+        self.log.myprint(time_consumed)
+        self.log.myprint_out('ACTION == Automatic analysis is done!')
         self.update_unit_combobox(self.channel_comboBox.currentText(), 'All')
         self.update_view(index)
 
