@@ -134,79 +134,14 @@
              <set>Qt::AlignCenter</set>
             </property>
             <layout class="QGridLayout" name="gridLayout_2">
-             <item row="7" column="1">
+             <item row="4" column="1">
               <widget class="QPushButton" name="all_sorting_btn">
                <property name="text">
                 <string>Sorting</string>
                </property>
               </widget>
              </item>
-             <item row="6" column="1">
-              <widget class="QComboBox" name="metric_comboBox">
-               <property name="maximumSize">
-                <size>
-                 <width>16777215</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-               <property name="sizeAdjustPolicy">
-                <enum>QComboBox::AdjustToContents</enum>
-               </property>
-               <item>
-                <property name="text">
-                 <string>manhattan</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>euclidean</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>chebyshev</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>minkowski</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>canberra</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>braycurtis</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>seuclidean</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>cosine</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>correlation</string>
-                </property>
-               </item>
-              </widget>
-             </item>
              <item row="4" column="0">
-              <widget class="QLabel" name="label_4">
-               <property name="text">
-                <string>n_neighbors</string>
-               </property>
-              </widget>
-             </item>
-             <item row="7" column="0">
               <widget class="QPushButton" name="all_denoising_btn">
                <property name="maximumSize">
                 <size>
@@ -222,23 +157,7 @@
              <item row="0" column="1">
               <widget class="QLineEdit" name="TemporalThreshold_Edit">
                <property name="text">
-                <string>1</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item row="5" column="1">
-              <widget class="QLineEdit" name="min_dist_edit">
-               <property name="maximumSize">
-                <size>
-                 <width>16777215</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>0.3</string>
+                <string>10</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignCenter</set>
@@ -268,40 +187,10 @@
                </property>
               </widget>
              </item>
-             <item row="8" column="0" colspan="2">
+             <item row="5" column="0" colspan="2">
               <widget class="QPushButton" name="all_in_btn">
                <property name="text">
                 <string>All In One Step</string>
-               </property>
-              </widget>
-             </item>
-             <item row="4" column="1">
-              <widget class="QLineEdit" name="n_neighbors_edit">
-               <property name="maximumSize">
-                <size>
-                 <width>16777215</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>10</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item row="5" column="0">
-              <widget class="QLabel" name="label_5">
-               <property name="text">
-                <string>min_dist</string>
-               </property>
-              </widget>
-             </item>
-             <item row="6" column="0">
-              <widget class="QLabel" name="label_6">
-               <property name="text">
-                <string>metric</string>
                </property>
               </widget>
              </item>

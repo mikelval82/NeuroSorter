@@ -122,25 +122,31 @@ class data_manager(nev_manager):
                 for lookbackIndex in range (intervalLength):
                     maximum = max (global_FiringRate [baseIndex - lookbackIndex], maximum)
                 outputSignal.append (maximum)
-            # compute the histogram of the enveloppe and set a threshold
-            hist,range_ = np.histogram(outputSignal, bins=10)
-            filtered = savgol_filter(hist, 7, 2)
-            extrems =  argrelextrema(filtered, np.less)[0]
-            detected_modes = [range_[it] for it in extrems]
-            threshold = detected_modes[0] # --------------> the desired threshold
-            # those units that correspond to bins of the global firing rate that are over the threshold are set as noisy
-            for it in index:
-                stamp = self.spike_dict['TimeStamps'][it]
-                check = int(stamp/bin_)-1
-                if global_FiringRate[check] > threshold:
-                    self.spike_dict['OldID'][it] = self.spike_dict['UnitID'][it]
-                    self.spike_dict['UnitID'][it] = -1 
+
+            if np.std(outputSignal) > .3:
+                # compute the histogram of the enveloppe and set a threshold
+                hist,range_ = np.histogram(outputSignal, bins=10)
+                filtered = savgol_filter(hist, 7, 2)
+                extrems =  argrelextrema(filtered, np.less)[0]
+                detected_modes = [range_[it] for it in extrems]
+
+                try:
+                    threshold = detected_modes[0] # --------------> the desired threshold
+                except:
+                    threshold = .3
+                # those units that correspond to bins of the global firing rate that are over the threshold are set as noisy
+                for it in index:
+                    stamp = self.spike_dict['TimeStamps'][it]
+                    check = int(stamp/bin_)-1
+                    if global_FiringRate[check] > threshold:
+                        self.spike_dict['OldID'][it] = self.spike_dict['UnitID'][it]
+                        self.spike_dict['UnitID'][it] = -1 
                         
                         
         return self.current['plotted']
     
     @timeit
-    def clean(self, n_neighbors=15, min_dist=.3, metric='manhattan'):
+    def clean(self, n_neighbors=15, min_dist=.1, metric='manhattan'):
         if self.current['unitID'] != 'Noise':
             # reset old unit for undo action
             self.spike_dict['OldID'] = [None for _ in self.spike_dict['OldID']]
@@ -165,7 +171,7 @@ class data_manager(nev_manager):
         return self.current['plotted']
 
     @timeit
-    def clean_all(self, n_neighbors=15, min_dist=.3, metric='manhattan'):
+    def clean_all(self, n_neighbors=15, min_dist=.1, metric='manhattan'):
         # reset old unit for undo action
         self.spike_dict['OldID'] = [None for _ in self.spike_dict['OldID']]
     
@@ -189,7 +195,7 @@ class data_manager(nev_manager):
 
     
     @timeit
-    def sort(self, n_neighbors=20, min_dist=.3, metric='manhattan'):
+    def sort(self, n_neighbors=15, min_dist=.1, metric='manhattan'):
         if self.current['unitID'] != 'Noise' and self.current['unitID'] != 'All':
             channelID = int(self.current['channelID'])
             unitID = int(self.current['unitID'])
@@ -223,7 +229,7 @@ class data_manager(nev_manager):
         return self.current['plotted']
     
     @timeit
-    def sort_all(self, n_neighbors=20, min_dist=.3, metric='manhattan'):
+    def sort_all(self, n_neighbors=15, min_dist=.1, metric='manhattan'):
         # reset old unit for undo action
         self.spike_dict['OldID'] = [None for _ in self.spike_dict['OldID']]
             

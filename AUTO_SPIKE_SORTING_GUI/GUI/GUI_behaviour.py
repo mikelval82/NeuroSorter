@@ -154,10 +154,7 @@ class GUI_behaviour(QMainWindow, ui):
 
     def spikes_clean(self):
         self.log.myprint('ACTION == Spikes denoising in progress...')
-        n_neighbors = int(self.n_neighbors_edit.text())
-        min_dist = float(self.min_dist_edit.text())
-        metric = self.metric_comboBox.currentText()
-        [index, time_consumed] = self.dmg.clean(n_neighbors=n_neighbors, min_dist=min_dist, metric=metric)
+        [index, time_consumed] = self.dmg.clean(n_neighbors=15, min_dist=.1, metric='manhattan')
         self.log.myprint(time_consumed)
         self.log.myprint_out('ACTION == Spikes denoising is done!')
         self.update_unit_combobox(self.channel_comboBox.currentText(), self.unit_comboBox.currentText())
@@ -168,10 +165,7 @@ class GUI_behaviour(QMainWindow, ui):
             self.log.myprint_error('Sorting is not allowed when current UnitID=All')
         else:
             self.log.myprint('ACTION == Spikes sorting in progress...')
-            n_neighbors = int(self.n_neighbors_edit.text())
-            min_dist = float(self.min_dist_edit.text())
-            metric = self.metric_comboBox.currentText()
-            [index, time_consumed] = self.dmg.sort(n_neighbors=n_neighbors, min_dist=min_dist, metric=metric)
+            [index, time_consumed] = self.dmg.sort(n_neighbors=15, min_dist=.1, metric='manhattan')
             self.log.myprint(time_consumed)
             self.log.myprint_out('ACTION == Spikes sorting is done!')
             self.update_unit_combobox(self.channel_comboBox.currentText(), 'All')
@@ -183,19 +177,16 @@ class GUI_behaviour(QMainWindow, ui):
         self.log.myprint_out('ACTION == Cross talk is done!')
         self.update_amplitude_threshold()
         self.log.myprint_out('ACTION == Amplitude threshold is done!')
-        self.dmg.clean_all(n_neighbors=10, min_dist=0.1, metric='manhattan')
+        self.dmg.clean_all(n_neighbors=15, min_dist=0.1, metric='manhattan')
         self.log.myprint_out('ACTION == Spikes denoising is done!')
-        [index, _] = self.dmg.sort_all(n_neighbors=20, min_dist=0.3, metric='manhattan')
+        [index, _] = self.dmg.sort_all(n_neighbors=15, min_dist=0.1, metric='manhattan')
         self.log.myprint_out('ACTION == Spikes sorting is done!')
         self.update_unit_combobox(self.channel_comboBox.currentText(), 'All')
         self.update_view(index)
 
     def automatic_denoising(self):
         self.log.myprint('ACTION == Spikes denoising in progress...')
-        n_neighbors = int(self.n_neighbors_edit.text())
-        min_dist = float(self.min_dist_edit.text())
-        metric = self.metric_comboBox.currentText()
-        [index, time_consumed] = self.dmg.clean_all(n_neighbors=n_neighbors, min_dist=min_dist, metric=metric)
+        [index, time_consumed] = self.dmg.clean_all(n_neighbors=15, min_dist=.1, metric='manhattan')
         self.log.myprint(time_consumed)
         self.log.myprint_out('ACTION == Spikes denoising is done!')
         self.update_unit_combobox(self.channel_comboBox.currentText(), 'All')
@@ -203,10 +194,7 @@ class GUI_behaviour(QMainWindow, ui):
 
     def automatic_sorting(self):
         self.log.myprint('ACTION == Spikes sorting in progress...')
-        n_neighbors = int(self.n_neighbors_edit.text())
-        min_dist = float(self.min_dist_edit.text())
-        metric = self.metric_comboBox.currentText()
-        [index, time_consumed] = self.dmg.sort_all(n_neighbors=n_neighbors, min_dist=min_dist, metric=metric)
+        [index, time_consumed] = self.dmg.sort_all(n_neighbors=15, min_dist=0.1, metric='manhattan')
         self.log.myprint(time_consumed)
         self.log.myprint_out('ACTION == Spikes sorting is done!')
         self.update_unit_combobox(self.channel_comboBox.currentText(), 'All')
@@ -229,7 +217,6 @@ class GUI_behaviour(QMainWindow, ui):
                 waveforms_unit = waveforms[subindex, :]
                 numUnits.append(len(waveforms_unit))
                 self.MplWidget.plot(waveforms_unit, unit)
-            print('manage plotting units ', units, numUnits)
             self.MplWidget.plot_legend(units, numUnits)
         else:
             self.MplWidget.clear_plot()
