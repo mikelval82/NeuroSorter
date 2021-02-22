@@ -14,8 +14,7 @@ import matplotlib
 matplotlib.use('Qt5Agg')
 
 @timeit
-def run(spike_dict, current):
-    fs = spike_dict['SamplingRate']    
+def run(spike_dict, current):  
     
     channelMap = np.array([None, 1,2,3,4,5,6,7,8,None,
                         9,10,11,12,13,14,15,16,17,18,
@@ -42,6 +41,7 @@ def run(spike_dict, current):
     experiments = np.unique(spike_dict['ExperimentID'])
 
     for experiment in experiments:
+        fs = spike_dict['SamplingRate'] [experiment] 
 
         fig = plt.figure()
         for channel in range(1,97):
