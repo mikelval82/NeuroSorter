@@ -67,7 +67,7 @@ class spike_denoiser:
             # ---  compute the mean of the cluster ----------------
             y = zscore(waveforms[index].mean(axis=0))
 
-            spk_ccorr = 0
+            spk_ccorr = -np.inf
             for it, reference in enumerate(self.references):
                 corr, _ = spearmanr(zscore(reference), y)
                 if spk_ccorr < corr:
