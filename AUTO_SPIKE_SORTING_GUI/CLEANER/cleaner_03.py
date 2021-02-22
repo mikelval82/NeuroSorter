@@ -79,7 +79,7 @@ class spike_denoiser:
                 corr, _ = spearmanr(zscore(antireference), y)
                 if spk_ccorr < corr and corr > .95:
                     is_noise = True
-                    final_antireference = zscore(antireference)
+#                    final_antireference = zscore(antireference)
                     
             z = np.polyfit(np.arange(1,len(y)+1), y, 1)
             p = np.poly1d(z)
@@ -107,25 +107,25 @@ class spike_denoiser:
             
             std = np.sum(np.std(zscore(waveforms[index], axis=1), axis=0))/48
             
-            plt.figure()
-            plt.subplot(211)
-            plt.plot(y)
-            plt.plot(np.arange(1,49)*p[1]+p[0], 'm')
-            if is_noise:
-                plt.plot(final_antireference, 'r')
-            plt.plot(final_reference, 'g')
-            plt.subplot(212)
+#            plt.figure()
+#            plt.subplot(211)
+#            plt.plot(y)
+#            plt.plot(np.arange(1,49)*p[1]+p[0], 'm')
+#            if is_noise:
+#                plt.plot(final_antireference, 'r')
+#            plt.plot(final_reference, 'g')
+#            plt.subplot(212)
 #            
             
             if not is_noise and spk_ccorr > .7 and p[1]*100 > -2 and p[1]*100 < 3.5 and df < 6 and std < .6: #
                 unit_IDs[index] = 1
-                for wave in waveforms[index]:
-                    plt.plot(zscore(wave), 'c')
-            else:
-                for wave in waveforms[index]:
-                    plt.plot(zscore(wave), 'm')
-            plt.suptitle('result ' + str(not is_noise and spk_ccorr > .7 and p[1]*100 > -2 and p[1]*100 < 3.5 and df < 6 and std < .6) + " isnoise " + str(is_noise) + "corr {:.2f}".format(spk_ccorr) + "p {:.2f}".format(p[1]*100) + "df {:.2f}".format(df)+"std {:.2f}".format(std))
-            plt.show()
+#                for wave in waveforms[index]:
+#                    plt.plot(zscore(wave), 'c')
+#            else:
+#                for wave in waveforms[index]:
+#                    plt.plot(zscore(wave), 'm')
+#            plt.suptitle('result ' + str(not is_noise and spk_ccorr > .7 and p[1]*100 > -2 and p[1]*100 < 3.5 and df < 6 and std < .6) + " isnoise " + str(is_noise) + "corr {:.2f}".format(spk_ccorr) + "p {:.2f}".format(p[1]*100) + "df {:.2f}".format(df)+"std {:.2f}".format(std))
+#            plt.show()
                             
         return unit_IDs
     
