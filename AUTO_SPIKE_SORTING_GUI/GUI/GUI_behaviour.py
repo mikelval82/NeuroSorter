@@ -300,15 +300,17 @@ class GUI_behaviour(QMainWindow, ui):
         options |= QFileDialog.DontUseNativeDialog
         fileTypes = 'Nev Files (*.nev);;Python (*.npy)'
         fileNames, _ = QFileDialog.getOpenFileNames(self, 'QFileDialog.getOpenFileName()', '', fileTypes, options=options)
-        for file in fileNames:
-            self.log.myprint_in(file)
 
-        try:
-            [_,time_consumed] = self.dmg.load(fileNames)
-            self.log.myprint(time_consumed)
-            self.log.myprint_out('Loading completed.')
-        except:
-            self.log.myprint_error('Cannot load selected file.')
+        if fileNames:
+            try:
+                for file in fileNames:
+                    self.log.myprint_in(file)
+                
+                [_,time_consumed] = self.dmg.load(fileNames)
+                self.log.myprint(time_consumed)
+                self.log.myprint_out('Loading completed.')
+            except:
+                self.log.myprint_error('Cannot load selected file.')
 
         self.update_channel_combobox()
         self.toChannelID('Down')

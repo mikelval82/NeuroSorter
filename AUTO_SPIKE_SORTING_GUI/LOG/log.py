@@ -20,26 +20,30 @@ class log():
         self.tf_green.setForeground(QtGui.QBrush(QtCore.Qt.green))
         self.tf_red.setForeground(QtGui.QBrush(QtCore.Qt.red))
         self.tf_yellow.setForeground(QtGui.QBrush(QtCore.Qt.yellow))
-
+        
     def myprint(self, text):
         self.logger.setCurrentCharFormat(self.tf)
         self.logger.appendPlainText(text)
         self.logger.centerCursor()
-        
+        self.logger.repaint()
+    
     def myprint_in(self, text):
         self.logger.setCurrentCharFormat(self.tf_green)
         self.logger.appendPlainText("< "+text)
         self.logger.centerCursor()
+        self.logger.repaint()
     
     def myprint_out(self, text):
         self.logger.setCurrentCharFormat(self.tf_yellow)
         self.logger.appendPlainText("> "+text)
         self.logger.centerCursor()
+        self.logger.repaint()
         
     def myprint_error(self, text):
         self.logger.setCurrentCharFormat(self.tf_red)
         self.logger.appendPlainText(text)
         self.logger.centerCursor()
+        self.logger.repaint()
         
     def clear(self):
         self.logger.clear()
