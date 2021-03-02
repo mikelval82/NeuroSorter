@@ -107,16 +107,18 @@ class data_manager(nev_manager):
 
             index = np.array([it for it, exp in enumerate(self.spike_dict['ExperimentID']) if exp == experimentID and self.spike_dict['UnitID'][it] != -1])
             # compute global average firing rate
+            print(index)
             bin_ = int(self.spike_dict['SamplingRate'][experimentID]*window/1000)
             max_ = np.max(self.spike_dict['TimeStamps'])
             num_channels = len(np.unique(self.spike_dict['ChannelID']))
             temporal_pattern = np.zeros( (num_channels, int(max_/bin_)) )
-            
+            print(bin_, max_, num_channels, np.unique(self.spike_dict['ChannelID']))
             for it in index:
                 stamp = self.spike_dict['TimeStamps'][it]
                 temporal_pattern[self.spike_dict['ChannelID'][it]-1, int(stamp/bin_)-1] = 1
              
             global_FiringRate = np.mean(temporal_pattern, axis=0)
+            print(global_FiringRate)
             # -------------- a threshold must be specified automatically ------
             # compute the amplitude envelope over the global firing rate
             intervalLength = 100 # Experiment with this number, it depends on your sample frequency and highest "whistle" frequency
@@ -127,6 +129,7 @@ class data_manager(nev_manager):
                     maximum = max (global_FiringRate [baseIndex - lookbackIndex], maximum)
                 outputSignal.append (maximum)
 
+            print('std cross talk ', np.std(outputSignal))
             if np.std(outputSignal) > .3:
                 # compute the histogram of the enveloppe and set a threshold
                 hist,range_ = np.histogram(outputSignal, bins=10)
@@ -184,7 +187,7 @@ class data_manager(nev_manager):
         self.spike_dict['OldID'] = [None for _ in self.spike_dict['OldID']]
     
         for channelID in np.unique(self.spike_dict['ChannelID']):
-    
+            print(channelID)
             index = np.array([it for it, channel in enumerate(self.spike_dict['ChannelID']) if channel == channelID and self.spike_dict['UnitID'][it] != -1])
             waveforms = np.array([self.spike_dict['Waveforms'][it] for it in index])
             
@@ -244,7 +247,7 @@ class data_manager(nev_manager):
         self.spike_dict['OldID'] = [None for _ in self.spike_dict['OldID']]
             
         for channelID in np.unique(self.spike_dict['ChannelID']):
-            
+            print(channelID)
             index = np.array([it for it, channel in enumerate(self.spike_dict['ChannelID']) if channel == channelID and self.spike_dict['UnitID'][it] != -1])
             waveforms = np.array([self.spike_dict['Waveforms'][it] for it in index])
             

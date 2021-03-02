@@ -257,9 +257,9 @@ class GUI_behaviour(QMainWindow, ui):
                 self.MplWidget.plot(waveforms, 0)
 
     def update_channel_combobox(self):
-        channels = np.unique([channel for it, channel in enumerate(self.dmg.spike_dict['ChannelID']) if self.dmg.spike_dict['UnitID'][it] != -1])
+#        channels = np.unique([channel for it, channel in enumerate(self.dmg.spike_dict['ChannelID']) if self.dmg.spike_dict['UnitID'][it] != -1])
         self.channel_comboBox.clear()
-        [self.channel_comboBox.addItem(str(channel)) for channel in channels]
+        [self.channel_comboBox.addItem(str(channel)) for channel in np.unique(self.dmg.spike_dict['ChannelID'])]
 
     def update_unit_combobox(self, channelID, unitID):
         channelID = int(channelID)
@@ -319,8 +319,13 @@ class GUI_behaviour(QMainWindow, ui):
     def saveFileDialog(self):
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
-        fileName, filetype = QFileDialog.getSaveFileName(self, 'QFileDialog.getSaveFileName()', 'processed_', '(*.npy)', options=options)
-        self.dmg.save(fileName)
+        fileTypes = 'Nev Files (*.nev);;Python (*.npy)'
+        fileName, filetype = QFileDialog.getSaveFileName(self, 'QFileDialog.getSaveFileName()', 'processed_', fileTypes, options=options)
+
+        if filetype[:3] == 'Nev':  
+            self.dmg.save_nev(fileName)
+        elif filetype[:6] == 'Python':
+            self.dmg.save_npy(fileName)
         
     def create_file(self):
         options = QFileDialog.Options()

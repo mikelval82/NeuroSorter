@@ -27,7 +27,7 @@ def run(spike_dict, current):
         
         
         datahist = []
-        for i in range(triggers.size - 1):
+        for i in range(len(triggers) - 1):
             datahist = datahist + [(stamp - triggers[i])/fs for stamp in TimeStamps if stamp > triggers[i]+range_[0]*fs and stamp < triggers[i]+ range_[1]*fs]
             
         
@@ -41,7 +41,7 @@ def run(spike_dict, current):
         ax1.set_title('Peristimulus\nExpID {0}, Channel {1}, n = {2} trials'.format(experiment, current['channelID'], len(triggers)))
     
         ax2 = fig.add_subplot(212)
-        for i in range(triggers.size - 1):
+        for i in range(len(triggers) - 1):
             trial_raster = [(stamp - triggers[i])/fs for stamp in TimeStamps if stamp > triggers[i]+range_[0]*fs and stamp < triggers[i]+ range_[1]*fs]
             ax2.plot(trial_raster, np.transpose(i*np.ones([1,len(trial_raster)])),'|b')
     
