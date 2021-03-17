@@ -24,12 +24,50 @@ class nev_manager:
             if file[-4:] == '.npy':
                 self.__python_dict(file)
             elif file[-4:] == '.nev':
-                self.__nev_dict_binary(file, self.ExperimentID)
+                self.__nev_dict_neo(file, self.ExperimentID)
      
             self.ExperimentID += 1 
             
         return None
     
+    def __python_dict(self, file):
+        aux = np.load(file, allow_pickle=True)
+        self.spike_dict = aux.item()
+
+    def __nev_dict_neo(self, file, ExperimentID):
+        # -- read the file
+        reader = io.BlackrockIO(file)
+        segment = reader.read_segment()
+        # -- set sampling rate 
+        self.spike_dict['SamplingRate'].append( segment.spiketrains[0].sampling_rate.magnitude )
+        # -- set the triggers
+        self.spike_dict['Triggers'].append([])
+        self.spike_dict['Triggers_active'].append([])
+        for it,event in enumerate(segment.events):
+            if len(event.times) > 0:
+                self.spike_dict['Triggers'][ExperimentID].append( event.times.magnitude * segment.spiketrains[0].sampling_rate.magnitude )
+                self.spike_dict['Triggers_active'][ExperimentID].append(True)
+        # -- preload functions
+        append_channelID = self.spike_dict['ChannelID'].append
+        append_TimeStamps = self.spike_dict['TimeStamps'].append
+        append_Waveforms = self.spike_dict['Waveforms'].append
+        append_UnitID = self.spike_dict['UnitID'].append
+        append_OldID = self.spike_dict['OldID'].append
+        append_ExperimentID = self.spike_dict['ExperimentID'].append
+        append_active = self.spike_dict['Active'].append
+        # -- assign data to spike_dict
+        for channel in range(reader.unit_channels_count()):
+            waveforms = reader.get_spike_raw_waveforms(unit_index=channel)
+            timestamps = reader.get_spike_timestamps(unit_index=channel)
+            for timestamp, waveform in zip(timestamps, waveforms):
+                append_channelID(channel)
+                append_TimeStamps(timestamp)
+                append_Waveforms(waveform.squeeze())
+                append_UnitID(1)
+                append_OldID(None)
+                append_ExperimentID(ExperimentID)
+                append_active(True)
+        
     def save_npy(self, path): 
         exp = 0
         for file in self.spike_dict['FileNames']:
@@ -100,107 +138,79 @@ class nev_manager:
                 nev_file.close()
 
             exp+=1
-    
 
-    def __nev_dict_binary(self, file, ExperimentID):
-        def __get(num_bites, step, ctype, file):
-            data = []
-            loop = num_bites//step
-            for i in range(loop):
-                if ctype=='c':
-                    data.append( unpack(ctype,file.read(step))[0].decode() )
-                else:
-                    data.append( unpack(ctype,file.read(step))[0] )
+
+
+
+#    def __nev_dict_binary(self, file, ExperimentID):
+#        def __get(num_bites, step, ctype, file):
+#            data = []
+#            loop = num_bites//step
+#            for i in range(loop):
+#                if ctype=='c':
+#                    data.append( unpack(ctype,file.read(step))[0].decode() )
+#                else:
+#                    data.append( unpack(ctype,file.read(step))[0] )
+#        
+#            return data
+#        try:
+#            binary = open(file, "rb")
+#            binary.read(24)
+#            time_resolution_of_samples = __get(4,4,'I',binary)[0]
+#            binary.read(304)
+#            num_headers = num_headers = __get(4,4,'I',binary)[0]
+#            binary.read(num_headers*32)
+#            self.spike_dict['SamplingRate'].append(time_resolution_of_samples)
+#            
+#            # -- preload functions
+#            append_active = self.spike_dict['Active'].append
+#            append_channelID = self.spike_dict['ChannelID'].append
+#            append_TimeStamps = self.spike_dict['TimeStamps'].append
+#            append_Waveforms = self.spike_dict['Waveforms'].append
+#            append_UnitID = self.spike_dict['UnitID'].append
+#            append_OldID= self.spike_dict['OldID'].append
+#            append_ExperimentID = self.spike_dict['ExperimentID'].append
+#            
+#            while True:
+#                try:         
+#                    stamp = __get(4,4,'<I',binary)[0]
+#                    packet_id = __get(2,2,'<H',binary)[0] 
+#                    
+##                    if packet_id == 0:
+##                        binary.read(98)
+##                    elif packet_id > 96:
+##                        append_active(True)
+##                        append_channelID( packet_id )
+##                        append_TimeStamps( stamp )
+##                        append_UnitID(-1)
+##                        append_Waveforms(np.zeros((48,)))
+##                        append_OldID(None)
+##                        append_ExperimentID(ExperimentID)
+##                        binary.read(98)
+##                    else:
+#                    append_active(True)
+#                    append_TimeStamps( stamp )
+#                    append_channelID( packet_id )
+#                    unit = __get(1,1,'B',binary)[0]
+#                    if unit == 0:
+#                        append_UnitID( 1 )
+#                    elif unit == 255:
+#                        append_UnitID( -1 )
+#                    else:
+#                        append_UnitID( unit )
+#                    binary.read(1)
+#                    append_Waveforms( np.array(__get(96,2,'h',binary)).astype(np.int32) )
+#                    append_OldID(None)
+#                    append_ExperimentID(ExperimentID)
+#                except:
+#                    break
+#                
+#        except:
+#            print('error reading binary file: ', file)
+#        finally:
+#            binary.close()        
         
-            return data
-        try:
-            binary = open(file, "rb")
-            binary.read(24)
-            time_resolution_of_samples = __get(4,4,'I',binary)[0]
-            binary.read(304)
-            num_headers = num_headers = __get(4,4,'I',binary)[0]
-            binary.read(num_headers*32)
-            self.spike_dict['SamplingRate'].append(time_resolution_of_samples)
-            
-            # -- preload functions
-            trigger_aux = []
-            append_channelID = self.spike_dict['ChannelID'].append
-            append_TimeStamps = self.spike_dict['TimeStamps'].append
-            append_Waveforms = self.spike_dict['Waveforms'].append
-            append_UnitID = self.spike_dict['UnitID'].append
-            append_OldID= self.spike_dict['OldID'].append
-            append_ExperimentID = self.spike_dict['ExperimentID'].append
-            
-            while True:
-                try:         
-                    stamp = __get(4,4,'<I',binary)[0]
-                    packet_id = __get(2,2,'<H',binary)[0] 
-                    
-                    if packet_id == 131:
-                        trigger_aux.append(stamp)
-                        binary.read(98)
-                    elif packet_id == 0 or packet_id > 96:
-                        binary.read(98)
-                    else:
-                        #-------------------- total 104 bytes--------------------------------------------
-                        #--timestamp 4 bytes
-                        append_TimeStamps( stamp )
-                        #--packet id 2 bytes
-                        append_channelID( packet_id )
-                        #--unit id 1 byte
-                        unit = __get(1,1,'B',binary)[0]
-                        if unit == 0:
-                            append_UnitID( 1 )
-                        elif unit == 255:
-                            append_UnitID( -1 )
-                        else:
-                            append_UnitID( unit )
-                        #--reserved 1 byte
-                        binary.read(1)
-                        #--waveform 96 bytes
-                        append_Waveforms( np.array(__get(96,2,'h',binary)).astype(np.int32) )
-                        #----------------------------------------------------------------
-                        append_OldID(None)
-                        append_ExperimentID(ExperimentID)
-                except:
-                    break
-                
-            self.spike_dict['Trigger'].append( trigger_aux )
-        except:
-            print('error reading binary file: ', file)
-        finally:
-            binary.close()        
-        
-    def __python_dict(self, file):
-        aux = np.load(file, allow_pickle=True)
-        self.spike_dict = aux.item()
-#
-#    def __nev_dict_neo(self, file, ExperimentID):
-#        # -- read the file
-#        reader = io.BlackrockIO(file)
-#        segment = reader.read_segment()
-#        trigger = segment.events[0]
-#        # -- set the trigger
-#        self.spike_dict['SamplingRate'].append( segment.spiketrains[0].sampling_rate.magnitude )
-#        self.spike_dict['Trigger'].append( trigger.times.magnitude * segment.spiketrains[0].sampling_rate.magnitude )
-#        # -- preload functions
-#        append_channelID = self.spike_dict['ChannelID'].append
-#        append_TimeStamps = self.spike_dict['TimeStamps'].append
-#        append_Waveforms = self.spike_dict['Waveforms'].append
-#        append_UnitID = self.spike_dict['UnitID'].append
-#        append_OldID= self.spike_dict['OldID'].append
-#        append_ExperimentID = self.spike_dict['ExperimentID'].append
-#        # -- assign data to spike_dict
-#        for channel in range(reader.unit_channels_count()):
-#            waveforms = reader.get_spike_raw_waveforms(unit_index=channel)
-#            timestamps = reader.get_spike_timestamps(unit_index=channel)
-#            for timestamp, waveform in zip(timestamps, waveforms):
-#                append_channelID(channel)
-#                append_TimeStamps(timestamp)
-#                append_Waveforms(waveform.squeeze())
-#                append_UnitID(1)
-#                append_OldID(None)
-#                append_ExperimentID(ExperimentID)
+
                 
         
 

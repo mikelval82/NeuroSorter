@@ -21,7 +21,7 @@ class data_manager(nev_manager):
         
     def initialize_spike_containers(self):
         self.current ={'channelID':None,'unitID':None,'plotted':[],'selected':[]}
-        self.spike_dict = {'FileNames':[],'SamplingRate':[],'ExperimentID':[],'ChannelID':[],'UnitID':[],'OldID':[],'TimeStamps':[],'Waveforms':[],'Trigger':[]}
+        self.spike_dict = {'FileNames':[],'SamplingRate':[],'ExperimentID':[],'Active':[],'ChannelID':[],'UnitID':[],'OldID':[],'TimeStamps':[],'Waveforms':[],'Triggers':[],'Triggers_active':[]}
          
     def show_channelID(self, channelID):
         channelID = int(channelID)
@@ -58,6 +58,31 @@ class data_manager(nev_manager):
 
         return self.current['plotted']
 
+    def get_experiment_channels(self, experimentID):
+        channels = []
+        ch_activated = []
+        for it,channel in enumerate(self.spike_dict['ChannelID']):
+            if self.spike_dict['ExperimentID'][it] == experimentID and not channel in channels:
+                channels.append(channel)
+                ch_activated.append(self.spike_dict['Active'][it])
+                
+        return channels, ch_activated
+    
+    def get_experiment_triggers(self, experimentID):   
+        return self.spike_dict['Triggers'][experimentID], self.spike_dict['Triggers_active'][experimentID]
+    
+    def set_channel_active(self, experimentID, channel, mode=True):
+        for it,ch in enumerate(self.spike_dict['ChannelID']):
+            if ch == channel and self.spike_dict['ExperimentID'][it] == experimentID:
+                self.spike_dict['Active'][it] = mode
+                
+    def active_channels(self, experimentID, mode):
+        for it,ch in enumerate(self.spike_dict['ChannelID']):
+            if self.spike_dict['ExperimentID'][it] == experimentID:
+                self.spike_dict['Active'][it] = mode
+                
+    def set_trigger_active(self, experimentID, trigger_index, mode=True):
+        self.spike_dict['Triggers_active'][experimentID][trigger_index] = mode
         
     def undo(self): 
         index = [it for it,oldID in enumerate(self.spike_dict['OldID']) if oldID != None]
@@ -84,7 +109,7 @@ class data_manager(nev_manager):
     @timeit
     def clean_by_amplitude_threshold(self, r_min, r_max):
         if self.current['unitID'] != 'Noise':     
-            index = np.array( [it for it, channel in enumerate(self.spike_dict['ChannelID']) if self.spike_dict['UnitID'][it] != -1] )
+            index = np.array([it for it, channel in enumerate(self.spike_dict['ChannelID']) if self.spike_dict['Active'][it] and self.spike_dict['UnitID'][it] != -1])
             # get the corresponding waveforms
             waveforms = np.array(self.spike_dict['Waveforms'])[index]
             sub_index = np.array( [idx for it,idx in enumerate(index) if (waveforms[it].min() < r_min or waveforms[it].max() > r_max)] )
@@ -105,20 +130,18 @@ class data_manager(nev_manager):
         self.spike_dict['OldID'] = [None for _ in self.spike_dict['OldID']]
         for experimentID in np.unique(self.spike_dict['ExperimentID']):
 
-            index = np.array([it for it, exp in enumerate(self.spike_dict['ExperimentID']) if exp == experimentID and self.spike_dict['UnitID'][it] != -1])
+            index = np.array([it for it, exp in enumerate(self.spike_dict['ExperimentID']) if self.spike_dict['Active'][it] and exp == experimentID and self.spike_dict['UnitID'][it] != -1])
             # compute global average firing rate
-            print(index)
             bin_ = int(self.spike_dict['SamplingRate'][experimentID]*window/1000)
             max_ = np.max(self.spike_dict['TimeStamps'])
             num_channels = len(np.unique(self.spike_dict['ChannelID']))
             temporal_pattern = np.zeros( (num_channels, int(max_/bin_)) )
-            print(bin_, max_, num_channels, np.unique(self.spike_dict['ChannelID']))
+
             for it in index:
                 stamp = self.spike_dict['TimeStamps'][it]
                 temporal_pattern[self.spike_dict['ChannelID'][it]-1, int(stamp/bin_)-1] = 1
              
             global_FiringRate = np.mean(temporal_pattern, axis=0)
-            print(global_FiringRate)
             # -------------- a threshold must be specified automatically ------
             # compute the amplitude envelope over the global firing rate
             intervalLength = 100 # Experiment with this number, it depends on your sample frequency and highest "whistle" frequency
@@ -129,7 +152,6 @@ class data_manager(nev_manager):
                     maximum = max (global_FiringRate [baseIndex - lookbackIndex], maximum)
                 outputSignal.append (maximum)
 
-            print('std cross talk ', np.std(outputSignal))
             if np.std(outputSignal) > .3:
                 # compute the histogram of the enveloppe and set a threshold
                 hist,range_ = np.histogram(outputSignal, bins=10)
@@ -185,9 +207,13 @@ class data_manager(nev_manager):
     def clean_all(self, n_neighbors=15, min_dist=.1, metric='manhattan'):
         # reset old unit for undo action
         self.spike_dict['OldID'] = [None for _ in self.spike_dict['OldID']]
-    
-        for channelID in np.unique(self.spike_dict['ChannelID']):
-            print(channelID)
+        
+        channels_active = []
+        for it,channel in enumerate(self.spike_dict['ChannelID']):
+            if self.spike_dict['Active'][it] and not channel in channels_active:
+                channels_active.append(channel)
+
+        for channelID in channels_active:
             index = np.array([it for it, channel in enumerate(self.spike_dict['ChannelID']) if channel == channelID and self.spike_dict['UnitID'][it] != -1])
             waveforms = np.array([self.spike_dict['Waveforms'][it] for it in index])
             
@@ -245,9 +271,13 @@ class data_manager(nev_manager):
     def sort_all(self, n_neighbors=15, min_dist=.1, metric='manhattan'):
         # reset old unit for undo action
         self.spike_dict['OldID'] = [None for _ in self.spike_dict['OldID']]
-            
-        for channelID in np.unique(self.spike_dict['ChannelID']):
-            print(channelID)
+        
+        channels_active = []
+        for it,channel in enumerate(self.spike_dict['ChannelID']):
+            if self.spike_dict['Active'][it] and not channel in channels_active:
+                channels_active.append(channel)
+
+        for channelID in channels_active:
             index = np.array([it for it, channel in enumerate(self.spike_dict['ChannelID']) if channel == channelID and self.spike_dict['UnitID'][it] != -1])
             waveforms = np.array([self.spike_dict['Waveforms'][it] for it in index])
             

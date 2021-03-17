@@ -8,8 +8,9 @@
 from DYNAMIC.dynamic import dynamic
 from QTDesigner.sorter_mpl import Ui_MainWindows as  ui
 from LOG.log import log
-from PyQt5.QtWidgets import QMainWindow, QFileDialog, QShortcut
+from PyQt5.QtWidgets import QMainWindow, QFileDialog, QShortcut, QListWidgetItem
 from PyQt5.QtGui import QKeySequence
+from PyQt5.QtCore import Qt
 import numpy as np
 
 class GUI_behaviour(QMainWindow, ui):
@@ -18,17 +19,22 @@ class GUI_behaviour(QMainWindow, ui):
         QMainWindow.__init__(self, parent=None)
         self.setupUi(self)
         self.show()
-        
+        # init classes
         self.dmg = dmg
         self.log = log(self.logger)
         self.scripts_log = log(self.scripts_logger)
         self.dyn = dynamic(self.dmg, self.scripts_log, self.listWidget_3, self.RawCode)
         self.dyn.load_auxiliar_code()
-        
+        # callback emitter for waveforms selection in the spikes view
         self.MplWidget.emitter.connect(self.manage_selection)
-        
+        # Data Manager TAB
         self.btn_load.clicked.connect(self.openFileNameDialog)
         self.btn_save.clicked.connect(self.saveFileDialog)
+        self.files_listWidget.clicked.connect(self.onClicked_file)
+        self.channels_listWidget.clicked.connect(self.onClicked_channel)
+        self.refresh_btn.clicked.connect(self.refresh_raster)
+        self.radioButton.clicked.connect(self.active_channels)
+        # Spikes view TAB
         self.all_denoising_btn.clicked.connect(self.automatic_denoising)
         self.all_sorting_btn.clicked.connect(self.automatic_sorting)
         self.amplitude_threshold_btn.clicked.connect(lambda: self.update_amplitude_threshold())
@@ -38,15 +44,16 @@ class GUI_behaviour(QMainWindow, ui):
         self.denoising_btn.clicked.connect(lambda: self.spikes_clean())
         self.sorting_btn.clicked.connect(lambda: self.sorting())
         self.all_in_btn.clicked.connect(lambda: self.all_in_one_step())
-        self.btn_run.clicked.connect(lambda: self.dyn.load_module(self.listWidget_3.currentItem().text()))
-        self.btn_save_changes.clicked.connect(self.dyn.save_script)
-        self.btn_new_file.clicked.connect(self.create_file)
-        
         self.channel_comboBox.activated.connect(lambda: self.toChannelID(self.channel_comboBox.currentText()))
         self.unit_comboBox.activated.connect(lambda: self.toUnitID(self.unit_comboBox.currentText()))
         self.U2ID_comboBox.activated.connect(lambda: self.selected_unit2ID(self.U2ID_comboBox.currentText()))
-        
+        # Python scripts TAB
+        self.btn_run.clicked.connect(lambda: self.dyn.load_module(self.listWidget_3.currentItem().text()))
+        self.btn_save_changes.clicked.connect(self.dyn.save_script)
+        self.btn_new_file.clicked.connect(self.create_file)
+        # shortcuts management
         self.global_shortcuts = self._define_global_shortcuts()
+        # initializations
         self.update_U2ID_combobox()
 
     def _define_global_shortcuts(self):
@@ -108,7 +115,6 @@ class GUI_behaviour(QMainWindow, ui):
         self.update_view(index)
 
     def selected_unit2ID(self, unit):
-        print('selected unit2id ', unit)
         if self.dmg.current['unitID'] == 'All':
             self.log.myprint_error('Unit ID modification is not allowed when current UnitID=All')
         else:
@@ -257,10 +263,12 @@ class GUI_behaviour(QMainWindow, ui):
                 self.MplWidget.plot(waveforms, 0)
 
     def update_channel_combobox(self):
-#        channels = np.unique([channel for it, channel in enumerate(self.dmg.spike_dict['ChannelID']) if self.dmg.spike_dict['UnitID'][it] != -1])
-        self.channel_comboBox.clear()
-        [self.channel_comboBox.addItem(str(channel)) for channel in np.unique(self.dmg.spike_dict['ChannelID'])]
-
+        self.channel_comboBox.clear()        
+        channels = self.dmg.spike_dict['ChannelID']
+        activations = self.dmg.spike_dict['Active']
+        channels_active = np.unique([channel for it,channel in enumerate(channels) if activations[it]])
+        [self.channel_comboBox.addItem(str(channel)) for channel in channels_active]
+                 
     def update_unit_combobox(self, channelID, unitID):
         channelID = int(channelID)
         units = np.unique([self.dmg.spike_dict['UnitID'][idx] for idx, channel in enumerate(self.dmg.spike_dict['ChannelID']) if channel == channelID if self.dmg.spike_dict['UnitID'][idx] != -1])
@@ -294,6 +302,74 @@ class GUI_behaviour(QMainWindow, ui):
     def update_U2ID_combobox(self):       
         [self.U2ID_comboBox.addItem(str(unit)) for unit in ['Noise', 1, 2, 3, 4, 5, 6, 7, 8, 9]]
         self.U2ID_comboBox.setCurrentIndex(0)
+        
+    def files_list(self):
+        self.files_listWidget.clear()
+        for file in self.dmg.spike_dict['FileNames']:
+            item = QListWidgetItem( file.split('/')[-1][:-4] )
+            item.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled)
+            self.files_listWidget.addItem(item)
+        
+    def refresh_raster(self):
+        self.raster_plot_frame.plot(self.files_listWidget.currentRow(), self.dmg.spike_dict)
+        self.update_channel_combobox()
+        self.toChannelID('Down')
+        self.update_unit_combobox(self.channel_comboBox.currentText(), self.unit_comboBox.currentText())
+        
+    def active_channels(self):
+        checked = self.radioButton.isChecked()
+        if checked:
+            item_state = Qt.Checked
+        else:
+            item_state = Qt.Unchecked
+            
+        self.dmg.active_channels(self.files_listWidget.currentRow(), checked)
+        
+        for index in range(self.channels_listWidget.count()):
+            self.channels_listWidget.item(index).setCheckState(item_state)
+
+    def onClicked_file(self, index):
+        experimentID = index.row()
+        channels, ch_activated = self.dmg.get_experiment_channels( experimentID )
+        triggers, tr_active = self.dmg.get_experiment_triggers( experimentID )
+        # -- add triggers
+        self.channels_listWidget.clear()
+        for it,timestamps in enumerate(triggers):
+            item = QListWidgetItem( 'Trigger_' + str(it) + ': ' + str(len(timestamps)) + ' TimeStamps')
+            item.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled | Qt.ItemIsSelectable)
+            if tr_active[it]:
+                item.setCheckState(Qt.Checked)
+            else:
+                item.setCheckState(Qt.Unchecked)
+            self.channels_listWidget.addItem(item)
+        # -- add channels
+        for it,channel in enumerate(channels):
+            item = QListWidgetItem( str(channel) )
+            item.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled | Qt.ItemIsSelectable)
+            if ch_activated[it]:
+                item.setCheckState(Qt.Checked)
+            else:
+                item.setCheckState(Qt.Unchecked)
+            self.channels_listWidget.addItem(item)
+
+        self.refresh_raster()   
+            
+    def onClicked_channel(self, index):
+        experimentID = self.files_listWidget.currentRow()
+        channel = self.channels_listWidget.currentItem().text()
+
+        if not self.channels_listWidget.item(index.row()).checkState():
+            self.channels_listWidget.item(index.row()).setCheckState(Qt.Checked)
+            if channel[:7] == 'Trigger':
+                self.dmg.set_trigger_active(experimentID, index.row(), mode=True)
+            else:
+                self.dmg.set_channel_active(experimentID, int(channel), mode=True)
+        else:
+            self.channels_listWidget.item(index.row()).setCheckState(Qt.Unchecked)
+            if channel[:7] == 'Trigger':
+                self.dmg.set_trigger_active(experimentID, index.row(), mode=False)  
+            else:
+                self.dmg.set_channel_active(experimentID, int(channel), mode=False) 
 
     def openFileNameDialog(self, btn):
         options = QFileDialog.Options()
@@ -309,12 +385,9 @@ class GUI_behaviour(QMainWindow, ui):
                 [_,time_consumed] = self.dmg.load(fileNames)
                 self.log.myprint(time_consumed)
                 self.log.myprint_out('Loading completed.')
+                self.files_list()
             except:
                 self.log.myprint_error('Cannot load selected file.')
-
-        self.update_channel_combobox()
-        self.toChannelID('Down')
-        self.update_unit_combobox(self.channel_comboBox.currentText(), self.unit_comboBox.currentText())
 
     def saveFileDialog(self):
         options = QFileDialog.Options()
