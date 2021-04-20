@@ -92,7 +92,8 @@ class GUI_behaviour(QMainWindow, ui):
             index = self.channel_comboBox.currentIndex()
             if index > 0:
                 self.channel_comboBox.setCurrentIndex(index - 1)
-
+            
+        print(self.channel_comboBox.currentText())
         current_channel = int(self.channel_comboBox.currentText())
         self.dmg.current['channelID'] = current_channel
         self.update_unit_combobox(current_channel, 'All')
