@@ -18,11 +18,62 @@ class data_manager(nev_manager):
         nev_manager.__init__(self)
         self.spk = spk
         self.ae = ae
-        
+    
+    #%% TAB 1 LOADING AND SELECTING DATA
     def initialize_spike_containers(self):
         self.current ={'channelID':None,'unitID':None,'plotted':[],'selected':[]}
-        self.spike_dict = {'FileNames':[],'SamplingRate':[],'ExperimentID':[],'Active':[],'ChannelID':[],'UnitID':[],'OldID':[],'TimeStamps':[],'Waveforms':[],'Triggers':[],'Triggers_active':[]}
+        self.full_spike_dict = {'FileNames':[],'SamplingRate':[],'ExperimentID':[],'Active':[],'ChannelID':[],'UnitID':[],'OldID':[],'TimeStamps':[],'Waveforms':[],'Triggers':[],'Triggers_active':[]}
          
+    def get_experiment_channels(self, experimentID):
+        channels = []
+        ch_activated = []
+        for it,channel in enumerate(self.full_spike_dict['ChannelID']):
+            if self.full_spike_dict['ExperimentID'][it] == experimentID and not channel in channels:
+                channels.append(channel)
+                ch_activated.append(self.full_spike_dict['Active'][it])
+                
+        return channels, ch_activated
+    
+    def get_experiment_triggers(self, experimentID):   
+        return self.full_spike_dict['Triggers'][experimentID], self.full_spike_dict['Triggers_active'][experimentID]
+    
+    def set_channel_active(self, experimentID, channel, mode=True):
+        for it,ch in enumerate(self.full_spike_dict['ChannelID']):
+            if ch == channel and self.full_spike_dict['ExperimentID'][it] == experimentID:
+                self.full_spike_dict['Active'][it] = mode   
+        self.update_spike_dict('channels')
+                
+    def active_channels(self, experimentID, mode):
+        for it,ch in enumerate(self.full_spike_dict['ChannelID']):
+            if self.full_spike_dict['ExperimentID'][it] == experimentID:
+                self.full_spike_dict['Active'][it] = mode
+        self.update_spike_dict('channels')
+                
+    def set_trigger_active(self, experimentID, trigger_index, mode=True):
+        self.full_spike_dict['Triggers_active'][experimentID][trigger_index] = mode
+        self.update_spike_dict('triggers')
+        
+    def update_spike_dict(self, update):
+        if update == 'triggers':
+            self.spike_dict['Triggers_active'] = self.full_spike_dict['Triggers_active']
+        elif update == 'channels':
+            self.spike_dict = {'FileNames':[],'SamplingRate':[],'ExperimentID':[],'Active':[],'ChannelID':[],'UnitID':[],'OldID':[],'TimeStamps':[],'Waveforms':[],'Triggers':[],'Triggers_active':[]}
+            self.spike_dict['FileNames'] = self.full_spike_dict['FileNames']
+            self.spike_dict['SamplingRate'] = self.full_spike_dict['SamplingRate']
+            self.spike_dict['Triggers'] = self.full_spike_dict['Triggers']
+            self.spike_dict['Triggers_active'] = self.full_spike_dict['Triggers_active']
+ 
+            for it,state in enumerate(self.full_spike_dict['Active']):
+                if state:
+                    self.spike_dict['ExperimentID'].append( self.full_spike_dict['ExperimentID'][it] )
+                    self.spike_dict['Active'].append( self.full_spike_dict['Active'][it] )
+                    self.spike_dict['ChannelID'].append( self.full_spike_dict['ChannelID'][it] )
+                    self.spike_dict['UnitID'].append( self.full_spike_dict['UnitID'][it] )
+                    self.spike_dict['OldID'].append( self.full_spike_dict['OldID'][it] )
+                    self.spike_dict['TimeStamps'].append( self.full_spike_dict['TimeStamps'][it] )
+                    self.spike_dict['Waveforms'].append( self.full_spike_dict['Waveforms'][it] )
+        
+    #%% TAB 2 CLEANING AND SORTING
     def show_channelID(self, channelID):
         channelID = int(channelID)
         self.current['channelID'] = channelID
@@ -57,32 +108,6 @@ class data_manager(nev_manager):
             self.current['selected'] = []
 
         return self.current['plotted']
-
-    def get_experiment_channels(self, experimentID):
-        channels = []
-        ch_activated = []
-        for it,channel in enumerate(self.spike_dict['ChannelID']):
-            if self.spike_dict['ExperimentID'][it] == experimentID and not channel in channels:
-                channels.append(channel)
-                ch_activated.append(self.spike_dict['Active'][it])
-                
-        return channels, ch_activated
-    
-    def get_experiment_triggers(self, experimentID):   
-        return self.spike_dict['Triggers'][experimentID], self.spike_dict['Triggers_active'][experimentID]
-    
-    def set_channel_active(self, experimentID, channel, mode=True):
-        for it,ch in enumerate(self.spike_dict['ChannelID']):
-            if ch == channel and self.spike_dict['ExperimentID'][it] == experimentID:
-                self.spike_dict['Active'][it] = mode
-                
-    def active_channels(self, experimentID, mode):
-        for it,ch in enumerate(self.spike_dict['ChannelID']):
-            if self.spike_dict['ExperimentID'][it] == experimentID:
-                self.spike_dict['Active'][it] = mode
-                
-    def set_trigger_active(self, experimentID, trigger_index, mode=True):
-        self.spike_dict['Triggers_active'][experimentID][trigger_index] = mode
         
     def undo(self): 
         index = [it for it,oldID in enumerate(self.spike_dict['OldID']) if oldID != None]
@@ -130,7 +155,7 @@ class data_manager(nev_manager):
         self.spike_dict['OldID'] = [None for _ in self.spike_dict['OldID']]
         for experimentID in np.unique(self.spike_dict['ExperimentID']):
 
-            index = np.array([it for it, exp in enumerate(self.spike_dict['ExperimentID']) if self.spike_dict['Active'][it] and exp == experimentID and self.spike_dict['UnitID'][it] != -1])
+            index = np.array([it for it, exp in enumerate(self.spike_dict['ExperimentID']) if exp == experimentID and self.spike_dict['UnitID'][it] != -1])
             # compute global average firing rate
             bin_ = int(self.spike_dict['SamplingRate'][experimentID]*window/1000)
             max_ = np.max(self.spike_dict['TimeStamps'])
@@ -139,7 +164,9 @@ class data_manager(nev_manager):
 
             for it in index:
                 stamp = self.spike_dict['TimeStamps'][it]
-                temporal_pattern[self.spike_dict['ChannelID'][it]-1, int(stamp/bin_)-1] = 1
+                x = np.where(np.unique(self.spike_dict['ChannelID']) == self.spike_dict['ChannelID'][it])[0][0]
+                y = int(stamp/bin_)-1
+                temporal_pattern[x, y] = 1
              
             global_FiringRate = np.mean(temporal_pattern, axis=0)
             # -------------- a threshold must be specified automatically ------

@@ -19,7 +19,7 @@ class nev_manager:
         
         self.ExperimentID = 0
         for file in fileNames:
-            self.spike_dict['FileNames'].append(file)
+            self.full_spike_dict['FileNames'].append(file)
             
             if file[-4:] == '.npy':
                 self.__python_dict(file)
@@ -32,29 +32,29 @@ class nev_manager:
     
     def __python_dict(self, file):
         aux = np.load(file, allow_pickle=True)
-        self.spike_dict = aux.item()
+        self.full_spike_dict = aux.item()
 
     def __nev_dict_neo(self, file, ExperimentID):
         # -- read the file
         reader = io.BlackrockIO(file)
         segment = reader.read_segment()
         # -- set sampling rate 
-        self.spike_dict['SamplingRate'].append( segment.spiketrains[0].sampling_rate.magnitude )
+        self.full_spike_dict['SamplingRate'].append( segment.spiketrains[0].sampling_rate.magnitude )
         # -- set the triggers
-        self.spike_dict['Triggers'].append([])
-        self.spike_dict['Triggers_active'].append([])
+        self.full_spike_dict['Triggers'].append([])
+        self.full_spike_dict['Triggers_active'].append([])
         for it,event in enumerate(segment.events):
             if len(event.times) > 0:
-                self.spike_dict['Triggers'][ExperimentID].append( event.times.magnitude * segment.spiketrains[0].sampling_rate.magnitude )
-                self.spike_dict['Triggers_active'][ExperimentID].append(True)
+                self.full_spike_dict['Triggers'][ExperimentID].append( event.times.magnitude * segment.spiketrains[0].sampling_rate.magnitude )
+                self.full_spike_dict['Triggers_active'][ExperimentID].append(True)
         # -- preload functions
-        append_channelID = self.spike_dict['ChannelID'].append
-        append_TimeStamps = self.spike_dict['TimeStamps'].append
-        append_Waveforms = self.spike_dict['Waveforms'].append
-        append_UnitID = self.spike_dict['UnitID'].append
-        append_OldID = self.spike_dict['OldID'].append
-        append_ExperimentID = self.spike_dict['ExperimentID'].append
-        append_active = self.spike_dict['Active'].append
+        append_channelID = self.full_spike_dict['ChannelID'].append
+        append_TimeStamps = self.full_spike_dict['TimeStamps'].append
+        append_Waveforms = self.full_spike_dict['Waveforms'].append
+        append_UnitID = self.full_spike_dict['UnitID'].append
+        append_OldID = self.full_spike_dict['OldID'].append
+        append_ExperimentID = self.full_spike_dict['ExperimentID'].append
+        append_active = self.full_spike_dict['Active'].append
         # -- assign data to spike_dict
         for channel in range(reader.unit_channels_count()):
             waveforms = reader.get_spike_raw_waveforms(unit_index=channel)
@@ -72,12 +72,12 @@ class nev_manager:
         exp = 0
         for file in self.spike_dict['FileNames']:
             data = {'ChannelID':[], 'UnitID':[], 'TimeStamps':[], 'Waveforms':[], 'SamplingRate':None, 'Trigger':None}
-            data['ChannelID'] = [channel for it, channel in enumerate(self.spike_dict['ChannelID']) if self.spike_dict['ExperimentID'][it] == exp]
-            data['UnitID'] = [unit for it, unit in enumerate(self.spike_dict['UnitID']) if self.spike_dict['ExperimentID'][it] == exp]
-            data['TimeStamps'] = [stamp for it, stamp in enumerate(self.spike_dict['TimeStamps']) if self.spike_dict['ExperimentID'][it] == exp]
-            data['Waveforms'] = [wave for it, wave in enumerate(self.spike_dict['Waveforms']) if self.spike_dict['ExperimentID'][it] == exp]
-            data['SamplingRate'] = self.spike_dict['SamplingRate'][exp]
-            data['Trigger'] = self.spike_dict['Trigger'][exp]
+            data['ChannelID'] = [channel for it, channel in enumerate(self.full_spike_dict['ChannelID']) if self.full_spike_dict['ExperimentID'][it] == exp and self.spike_dict['UnitID'][it] != -1]
+            data['UnitID'] = [unit for it, unit in enumerate(self.full_spike_dict['UnitID']) if self.full_spike_dict['ExperimentID'][it] == exp and self.spike_dict['UnitID'][it] != -1]
+            data['TimeStamps'] = [stamp for it, stamp in enumerate(self.full_spike_dict['TimeStamps']) if self.full_spike_dict['ExperimentID'][it] == exp and self.spike_dict['UnitID'][it] != -1]
+            data['Waveforms'] = [wave for it, wave in enumerate(self.full_spike_dict['Waveforms']) if self.full_spike_dict['ExperimentID'][it] == exp and self.spike_dict['UnitID'][it] != -1]
+            data['SamplingRate'] = self.full_spike_dict['SamplingRate'][exp]
+            data['Trigger'] = self.full_spike_dict['Trigger'][exp]
             print(path, file)
             if path.split('/')[-1] != 'processed_':
                 filename = path + '_' + str(exp) + '.npy'
