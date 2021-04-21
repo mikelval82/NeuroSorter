@@ -333,6 +333,7 @@ class GUI_behaviour(QMainWindow, ui):
         experimentID = index.row()
         channels, ch_activated = self.dmg.get_experiment_channels( experimentID )
         triggers, tr_active = self.dmg.get_experiment_triggers( experimentID )
+        
         # -- add triggers
         self.channels_listWidget.clear()
         for it,timestamps in enumerate(triggers):
@@ -344,6 +345,7 @@ class GUI_behaviour(QMainWindow, ui):
                 item.setCheckState(Qt.Unchecked)
             self.channels_listWidget.addItem(item)
         # -- add channels
+        channels.sort()
         for it,channel in enumerate(channels):
             item = QListWidgetItem( str(channel) )
             item.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled | Qt.ItemIsSelectable)
