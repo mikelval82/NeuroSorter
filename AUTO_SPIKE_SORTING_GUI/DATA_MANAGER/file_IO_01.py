@@ -68,21 +68,24 @@ class nev_manager:
                 timestamp = unpack('<I', binary.read(4))[0]
                 packetid = unpack('<H', binary.read(2))[0]
                 unit = unpack('<B', binary.read(1))[0]
-                reserved = unpack('<B', binary.read(1))
-                waveform = []
-                for i in range(48):
-                    waveform.append( unpack('h', binary.read(2))[0] )
+                if unit == 0:
+                    unit = 1
+                elif unit == 255:
+                    unit = -1
+                unpack('<B', binary.read(1))#reserved 
+                waveform = [unpack('h', binary.read(2))[0] for _ in range(48)]
                     
                 append_TimeStamps( timestamp )
                 append_channelID( packetid )
                 append_Waveforms( np.array(waveform) )
-                append_UnitID(1)
+                append_UnitID(unit)
                 append_OldID(None)
                 append_ExperimentID(ExperimentID)
                 append_active(True)
                 
             except:
                 break
+ 
         binary.close()
         
 #                for channel in range(reader.unit_channels_count()):
@@ -128,10 +131,10 @@ class nev_manager:
         exp = 0
         for file in self.spike_dict['FileNames']:
             data = {'ChannelID':[], 'UnitID':[], 'TimeStamps':[], 'Waveforms':[], 'SamplingRate':None, 'Trigger':None}
-            data['ChannelID'] = [val for it, val in enumerate(self.spike_dict['ChannelID']) if self.spike_dict['ExperimentID'][it] == exp]
-            data['UnitID'] = [val for it, val in enumerate(self.spike_dict['UnitID']) if self.spike_dict['ExperimentID'][it] == exp]
-            data['TimeStamps'] = [val for it, val in enumerate(self.spike_dict['TimeStamps']) if self.spike_dict['ExperimentID'][it] == exp]
-            data['Waveforms'] = [val for it, val in enumerate(self.spike_dict['Waveforms']) if self.spike_dict['ExperimentID'][it] == exp]
+            data['ChannelID'] = [val for it, val in enumerate(self.spike_dict['ChannelID']) if self.spike_dict['ExperimentID'][it] == exp and self.spike_dict['UnitID'][it] != -1]
+            data['UnitID'] = [val for it, val in enumerate(self.spike_dict['UnitID']) if self.spike_dict['ExperimentID'][it] == exp and self.spike_dict['UnitID'][it] != -1]
+            data['TimeStamps'] = [val for it, val in enumerate(self.spike_dict['TimeStamps']) if self.spike_dict['ExperimentID'][it] == exp and self.spike_dict['UnitID'][it] != -1]
+            data['Waveforms'] = [val for it, val in enumerate(self.spike_dict['Waveforms']) if self.spike_dict['ExperimentID'][it] == exp and self.spike_dict['UnitID'][it] != -1]
             data['SamplingRate'] = self.spike_dict['SamplingRate'][exp]
             
             if path.split('/')[-1] != 'processed_':
@@ -139,7 +142,6 @@ class nev_manager:
             else:
                 filename = path + file.split('/')[-1][:-4] + '.nev'
             try:
-                print(file, filename)
                 binary = open(file, "rb")
                 nev_file = open(filename, "wb")
                 # write to file
@@ -149,21 +151,16 @@ class nev_manager:
                 num_headers = unpack('<I',num_headers_binary)[0]
                 nev_file.write(binary.read(num_headers*32))
                 
+                # save channels spike data
                 for it, val in enumerate(data['ChannelID']):
                     nev_file.write( pack('<I', data['TimeStamps'][it]) ) #timestamp
                     nev_file.write( pack('<H', data['ChannelID'][it]) ) #packet_id
-                    if data['UnitID'][it] == -1:
-                        nev_file.write( pack('<B', 255) )                    
-                    else:
-                        nev_file.write( pack('<B', data['UnitID'][it]) ) #unit id
-                    
+                    nev_file.write( pack('<B', data['UnitID'][it]) ) #unit id
                     nev_file.write( pack('<B', 0) ) # reserved
-                    
                     for i in range(48): # waveform
                         nev_file.write( pack('h', data['Waveforms'][it][i]) )
                 # save trigger data
                 if len(self.spike_dict['Triggers'][exp]):
-                    print('paso')
                     data['Trigger'] = self.spike_dict['Triggers'][exp]
                     
                     cont = 1
