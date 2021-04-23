@@ -12,6 +12,7 @@ from PyQt5.QtWidgets import QMainWindow, QFileDialog, QShortcut, QListWidgetItem
 from PyQt5.QtGui import QKeySequence
 from PyQt5.QtCore import Qt
 import numpy as np
+from scipy.stats import zscore
 
 class GUI_behaviour(QMainWindow, ui):
 
@@ -224,12 +225,19 @@ class GUI_behaviour(QMainWindow, ui):
                 waveforms_unit = waveforms[subindex, :]
                 numUnits.append(len(waveforms_unit))
                 
-                max_ = waveforms_unit.mean(axis=0).max()
-                min_ = waveforms_unit.mean(axis=0).min()
-                mean_sigma = waveforms_unit.std(axis=0).mean()
-                mean_sigma_norm = mean_sigma / abs(max_-min_)
-                                
-                sigmas.append( mean_sigma_norm )
+                
+                
+                
+                if len(waveforms_unit) > 1:
+                    mean_sigma = np.sum(np.std(zscore(waveforms_unit, axis=1), axis=0))/48
+                    
+                    sigmas.append( mean_sigma )
+                else:
+                    sigmas.append(0)
+                    
+                    
+                    
+                    
                 self.MplWidget.plot(waveforms_unit, unit)
             self.MplWidget.plot_legend(units, numUnits, sigmas)
         else:

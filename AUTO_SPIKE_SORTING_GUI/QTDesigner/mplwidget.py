@@ -64,19 +64,6 @@ class MplWidget(QWidget):
         self.canvas.draw()
         
     def plot(self, data, unit=0):
-#        # -- check spike alignment --   
-#        reference = 12
-#        # Print the obtained combinations
-#        for it,wave in enumerate(data):
-#            
-#            pos_min = np.argmin(wave[5:20])+5
-#            desplazamiento = reference-pos_min
-#            print(reference-pos_min)
-#            if desplazamiento < 0:
-#                data[it] = np.hstack((wave[abs(desplazamiento):],np.zeros((abs(desplazamiento),))))
-#            elif desplazamiento > 0:
-#                data[it] = np.hstack(( np.zeros((abs(desplazamiento),)), wave[:-abs(desplazamiento)], ))
-#            print(data[it].shape)
                          
         if len(data.shape) > 1:
             base = np.mgrid[:data.shape[0],:data.shape[1]][1]

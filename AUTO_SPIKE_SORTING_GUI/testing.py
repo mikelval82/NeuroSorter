@@ -77,16 +77,27 @@ file = './final_spontaneous_037_all_channels004.nev'
 
 full_spike_dict = __nev_dict_neo(file, 0, full_spike_dict)
 #%%
-np.unique(full_spike_dict['ChannelID'])
+print( np.unique(full_spike_dict['ChannelID']) )
 
-unit = np.array([wave for it,wave in enumerate(full_spike_dict['Waveforms']) if full_spike_dict['ChannelID'][it] == 10])
+unit = np.array([wave for it,wave in enumerate(full_spike_dict['Waveforms']) if full_spike_dict['ChannelID'][it] == 14])
 print(unit.shape)
-#%%
+
+from sklearn.preprocessing import MinMaxScaler
+
+norm = MinMaxScaler().fit_transform(unit.T).T
+mean_sigma = norm.std()
+print(mean_sigma)
+
+from scipy.stats import zscore
+
+std = np.sum(np.std(zscore(unit, axis=1), axis=0))/48
+print(std)
+
 import matplotlib.pyplot as plt
 
 plt.close('all')
 plt.figure()
-for data in unit:
+for data in norm:
     plt.plot(data)
 #%%
 
