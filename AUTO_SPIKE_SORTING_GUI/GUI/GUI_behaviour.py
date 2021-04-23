@@ -218,12 +218,20 @@ class GUI_behaviour(QMainWindow, ui):
             
             self.MplWidget.clear_plot()
             numUnits = []
+            sigmas = []
             for unit in units:
                 subindex = np.asarray(self.dmg.spike_dict['UnitID'])[index] == unit
                 waveforms_unit = waveforms[subindex, :]
                 numUnits.append(len(waveforms_unit))
+                
+                max_ = waveforms_unit.mean(axis=0).max()
+                min_ = waveforms_unit.mean(axis=0).min()
+                mean_sigma = waveforms_unit.std(axis=0).mean()
+                mean_sigma_norm = mean_sigma / abs(max_-min_)
+                                
+                sigmas.append( mean_sigma_norm )
                 self.MplWidget.plot(waveforms_unit, unit)
-            self.MplWidget.plot_legend(units, numUnits)
+            self.MplWidget.plot_legend(units, numUnits, sigmas)
         else:
             self.MplWidget.clear_plot()
 

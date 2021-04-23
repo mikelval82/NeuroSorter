@@ -64,6 +64,20 @@ class MplWidget(QWidget):
         self.canvas.draw()
         
     def plot(self, data, unit=0):
+#        # -- check spike alignment --   
+#        reference = 12
+#        # Print the obtained combinations
+#        for it,wave in enumerate(data):
+#            
+#            pos_min = np.argmin(wave[5:20])+5
+#            desplazamiento = reference-pos_min
+#            print(reference-pos_min)
+#            if desplazamiento < 0:
+#                data[it] = np.hstack((wave[abs(desplazamiento):],np.zeros((abs(desplazamiento),))))
+#            elif desplazamiento > 0:
+#                data[it] = np.hstack(( np.zeros((abs(desplazamiento),)), wave[:-abs(desplazamiento)], ))
+#            print(data[it].shape)
+                         
         if len(data.shape) > 1:
             base = np.mgrid[:data.shape[0],:data.shape[1]][1]
             self.canvas.axes.plot(base.T,data.T, color=self.my_cmap(unit))
@@ -73,10 +87,10 @@ class MplWidget(QWidget):
         self.canvas.axes.set_xlabel('Samples (n)', color='w', fontsize=20)
         self.canvas.draw()
 
-    def plot_legend(self, units, numUnits):
+    def plot_legend(self, units, numUnits, sigmas):
         legends = []
         for index, unit in enumerate(units):
-            legends.append(str(numUnits[index]) + ' Spikes of unit '+str(unit))
+            legends.append(str(numUnits[index]) + ' Spikes of unit '+str(unit) + ' \u03C3=' + "{:.2f}".format(sigmas[index]))
         leg = self.canvas.axes.legend(legends, loc='upper right')
         for index, unit in enumerate(units):
             leg.legendHandles[index].set_color(self.my_cmap(unit))
