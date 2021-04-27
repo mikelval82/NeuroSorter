@@ -402,7 +402,6 @@ class GUI_behaviour(QMainWindow, ui):
                     self.log.myprint_in(file)
                 
                 [_,time_consumed] = self.dmg.load(fileNames)
-                self.dmg.update_spike_dict('channels')
                 self.files_list()
                 self.log.myprint(time_consumed)
                 self.log.myprint_out('Loading completed.') 

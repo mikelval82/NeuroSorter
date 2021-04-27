@@ -14,6 +14,7 @@ import numpy as np
 
 
 def __nev_dict_neo(file, ExperimentID, full_spike_dict):
+    full_spike_dict['FileNames'].append(file)
     # -- read the file
     reader = io.BlackrockIO(file)
     segment = reader.read_segment()
@@ -70,50 +71,67 @@ def __nev_dict_neo(file, ExperimentID, full_spike_dict):
     return full_spike_dict
 
 #%%
-from scipy import signal
 
 full_spike_dict = {'FileNames':[],'SamplingRate':[],'ExperimentID':[],'Active':[],'ChannelID':[],'UnitID':[],'OldID':[],'TimeStamps':[],'Waveforms':[],'Triggers':[],'Triggers_active':[]}
-file = './final_spontaneous_037_all_channels004.nev'
+file = '2018_11_05_spontaneous001_UNITS_14_22_24_32_38_96.nev'
 
-full_spike_dict = __nev_dict_neo(file, 0, full_spike_dict)
+spike_dict = __nev_dict_neo(file, 0, full_spike_dict)
+
 #%%
-print( np.unique(full_spike_dict['ChannelID']) )
-
-unit = np.array([wave for it,wave in enumerate(full_spike_dict['Waveforms']) if full_spike_dict['ChannelID'][it] == 14])
-print(unit.shape)
-
-from sklearn.preprocessing import MinMaxScaler
-
-norm = MinMaxScaler().fit_transform(unit.T).T
-mean_sigma = norm.std()
-print(mean_sigma)
-
-from scipy.stats import zscore
-
-std = np.sum(np.std(zscore(unit, axis=1), axis=0))/48
-print(std)
-
-import matplotlib.pyplot as plt
-
-plt.close('all')
-plt.figure()
-for data in norm:
-    plt.plot(data)
-#%%
-
-reference = 12
-# Print the obtained combinations
-for it,wave in enumerate(unit):
-    
-    pos_min = np.argmin(wave[5:20])+5
-    desplazamiento = reference-pos_min
-    print(reference-pos_min)
-    if desplazamiento < 0:
-        unit[it] = np.hstack((wave[1:],np.zeros((abs(desplazamiento),))))
-    elif desplazamiento > 0:
-        unit[it] = np.hstack(( np.zeros((abs(desplazamiento),)), wave[:-abs(desplazamiento)], ))
-    print(unit[it].shape)
-    
+path = 'processed_'
+def save_nev(path): 
+    exp = 0
+    for file in spike_dict['FileNames']:
+        data = {'ChannelID':[], 'UnitID':[], 'TimeStamps':[], 'Waveforms':[], 'SamplingRate':None, 'Trigger':None}
+        data['ChannelID'] = [val for it, val in enumerate(spike_dict['ChannelID']) if spike_dict['ExperimentID'][it] == exp and spike_dict['UnitID'][it] != -1]
+        data['UnitID'] = [val for it, val in enumerate(spike_dict['UnitID']) if spike_dict['ExperimentID'][it] == exp and spike_dict['UnitID'][it] != -1]
+        data['TimeStamps'] = [val for it, val in enumerate(spike_dict['TimeStamps']) if spike_dict['ExperimentID'][it] == exp and spike_dict['UnitID'][it] != -1]
+        data['Waveforms'] = [val for it, val in enumerate(spike_dict['Waveforms']) if spike_dict['ExperimentID'][it] == exp and spike_dict['UnitID'][it] != -1]
+        data['SamplingRate'] = spike_dict['SamplingRate'][exp]
+        
+        if path.split('/')[-1] != 'processed_':
+            filename = path + '_' + str(exp) + '.nev'
+        else:
+            filename = path + file.split('/')[-1][:-4] + '.nev'
+        try:
+            binary = open(file, "rb")
+            nev_file = open(filename, "wb")
+            # write to file
+            nev_file.write(binary.read(332))
+            num_headers_binary = binary.read(4)
+            nev_file.write(num_headers_binary)
+            num_headers = unpack('<I',num_headers_binary)[0]
+            nev_file.write(binary.read(num_headers*32))
+            
+            # save channels spike data
+            for it, val in enumerate(data['ChannelID']):
+                nev_file.write( pack('<I', data['TimeStamps'][it]) ) #timestamp
+                nev_file.write( pack('<H', data['ChannelID'][it]) ) #packet_id
+                nev_file.write( pack('<B', data['UnitID'][it]) ) #unit id
+                nev_file.write( pack('<B', 0) ) # reserved
+                for i in range(48): # waveform
+                    nev_file.write( pack('h', data['Waveforms'][it][i]) )
+            # save trigger data
+            if len(spike_dict['Triggers'][exp]):
+                data['Trigger'] = spike_dict['Triggers'][exp]
+                print('paso')
+                
+                cont = 1
+                for trigger in data['Trigger']:
+                    triggerID = np.max(np.unique(data['ChannelID'])) + cont
+                    cont+=1
+                    for stamp in trigger:
+                        nev_file.write( pack('<I', int(stamp)) ) #timestamp
+                        nev_file.write( pack('<H', triggerID) ) #packet_id
+                        nev_file.write( pack('<B', 0) ) #unit id
+                        nev_file.write( pack('<B', 0) ) # reserved
+                        for i in range(48): # waveform
+                            nev_file.write( pack('h', 0) )
+        except:
+            print('Cannot save binary file: ')
+        finally:
+            binary.close()
+            nev_file.close()
     
     
     
