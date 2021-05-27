@@ -31,7 +31,7 @@ class MyApp(QApplication):
         sys.exit(self.exec_())
 
     def loadStyle(self):
-        with open('QTDesigner/CSS/Fibrary.qss') as f:
+        with open('QTDesigner/CSS/Aqua.qss') as f:
             self.setStyleSheet(f.read())
 
 if __name__ == "__main__":
