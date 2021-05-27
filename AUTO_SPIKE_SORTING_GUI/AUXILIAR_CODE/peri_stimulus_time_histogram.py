@@ -17,7 +17,7 @@ matplotlib.use('Qt5Agg')
 def run(spike_dict, current):
     #------------ PARAMETERS TO BE SET BY USERS ----------------------------------------#########################
     experiment = 0                               
-    channel = 56                                   
+    channel = 32                                   
     trigger = 0                                       
     unit =  2#'all'                                       
     bin_width = 100                              

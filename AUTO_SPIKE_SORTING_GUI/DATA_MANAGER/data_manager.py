@@ -132,12 +132,21 @@ class data_manager(nev_manager):
         return self.current['plotted']
 
     @timeit
-    def clean_by_amplitude_threshold(self, r_min, r_max):
+    def clean_by_amplitude_threshold(self, r_min, r_max, threshold):
         if self.current['unitID'] != 'Noise':     
             index = np.array([it for it, channel in enumerate(self.spike_dict['ChannelID']) if self.spike_dict['Active'][it] and self.spike_dict['UnitID'][it] != -1])
             # get the corresponding waveforms
             waveforms = np.array(self.spike_dict['Waveforms'])[index]
-            sub_index = np.array( [idx for it,idx in enumerate(index) if (waveforms[it].min() < r_min or waveforms[it].max() > r_max)] )
+            
+            #detect which units are in the accepted interval, or higher than the threshold
+            sub_index = []
+            for it,idx in enumerate(index):
+            	wave = waveforms[it]
+            	peak_min = wave[np.argmin(wave)]
+            	if peak_min < r_min or peak_min > r_max or wave.max() > threshold:
+            		sub_index.append(idx)
+            sub_index = np.array( sub_index )
+            
             # reset old unit for undo action
             self.spike_dict['OldID'] = [None for _ in self.spike_dict['OldID']]
             for idx in sub_index:

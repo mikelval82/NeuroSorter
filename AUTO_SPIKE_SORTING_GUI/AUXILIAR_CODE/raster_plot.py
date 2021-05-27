@@ -28,8 +28,9 @@ def run(spike_dict, current):
             if len(time_ch>0):
                 plt.plot(time_ch, np.transpose(channel*np.ones([1,len(time_ch)])),'|b')
                 
-        for trigger in spike_dict['Trigger'][experiment]:
-            plt.axvline(x=trigger/fs, color='m')
+        if spike_dict['Triggers'][experiment]:
+            for trigger in spike_dict['Triggers'][experiment]:
+                plt.axvline(x=trigger/fs, color='m')
             
         plt.xlabel('Time[s]')
         plt.ylabel('Channel')  

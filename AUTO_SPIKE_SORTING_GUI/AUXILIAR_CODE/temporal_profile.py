@@ -30,8 +30,9 @@ def run(spike_dict, current):
             x = np.hstack( (np.arange(stamp-point,stamp), np.arange(stamp, stamp+len(wave)-point)) )
             plt.plot(x/fs, wave, color=colours(unit))
         
-        for trigger in spike_dict['Trigger'][experiment]:
-            plt.axvline(x=trigger/fs, color='m')
+        if spike_dict['Triggers'][experiment]:
+            for trigger in spike_dict['Trigger'][experiment]:
+                 plt.axvline(x=trigger/fs, color='m')
             
         plt.show()
                 

@@ -33,7 +33,7 @@
     <item>
      <widget class="QTabWidget" name="windows_tabWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
@@ -250,7 +250,7 @@
            <widget class="QGroupBox" name="groupBox_3">
             <property name="maximumSize">
              <size>
-              <width>275</width>
+              <width>300</width>
               <height>200</height>
              </size>
             </property>
@@ -300,7 +300,7 @@
                 </sizepolicy>
                </property>
                <property name="text">
-                <string>[-1000, 1000]</string>
+                <string>[[-1000,-400], 1000]</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignCenter</set>
@@ -347,7 +347,7 @@
             </property>
             <property name="maximumSize">
              <size>
-              <width>275</width>
+              <width>300</width>
               <height>300</height>
              </size>
             </property>
@@ -555,7 +555,7 @@
             </property>
             <property name="maximumSize">
              <size>
-              <width>275</width>
+              <width>300</width>
               <height>16777215</height>
              </size>
             </property>
@@ -746,7 +746,7 @@
      <x>0</x>
      <y>0</y>
      <width>1643</width>
-     <height>32</height>
+     <height>22</height>
     </rect>
    </property>
   </widget>
