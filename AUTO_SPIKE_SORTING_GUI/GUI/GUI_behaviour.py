@@ -378,6 +378,7 @@ class GUI_behaviour(QMainWindow, ui):
             
     def onClicked_channel(self, index):
         experimentID = self.files_listWidget.currentRow()
+        print('que pasa ', self.channels_listWidget.count())
         channel = self.channels_listWidget.currentItem().text()
 
         if not self.channels_listWidget.item(index.row()).checkState():
