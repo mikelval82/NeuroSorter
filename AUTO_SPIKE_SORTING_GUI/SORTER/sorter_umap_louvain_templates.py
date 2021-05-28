@@ -7,36 +7,63 @@
 #%%
 import umap
 import numpy as np
-from scipy import signal
 import networkx as nx
 import community.community_louvain as community_louvain
 import similaritymeasures as sm
 
 class sorter:
     def __init__(self):
-        pass
+        path = './CLEANER/spike_templates/'
+        self.templates = np.array([np.load(path + 'spike_template_' + str(i) + '.npy') for i in range(115)])
         
     def sort_spikes(self, spikes, n_neighbors=20, min_dist=.3, n_components=2, metric='manhattan'):       
         if spikes.shape[0] <= n_neighbors:
             unit_IDs = np.zeros((spikes.shape[0],), dtype=int) + 1
         else:
-            # scaling
-            spikes = spikes[:,10:45]
-            min_, max_ = spikes.min(), spikes.max()
-            spikes_norm = np.array([(spk - min_)/(max_ - min_) for spk in spikes])
+            # scaling, maybe not necessary????¿?¿?¿?¿?
+            spikes_ = spikes[:,10:45]
+            min_, max_ = spikes_.min(), spikes_.max()
+            spikes_norm = np.array([(spk - min_)/(max_ - min_) for spk in spikes_])
             # compute latent features
-            reducer = umap.UMAP( n_neighbors=min([n_neighbors,int(np.ceil(len(spikes)/n_neighbors))]), min_dist=min_dist, n_components=n_components, metric=metric )
+            reducer = umap.UMAP( n_neighbors=min([n_neighbors,int(np.ceil(len(spikes_)/n_neighbors))]), min_dist=min_dist, n_components=n_components, metric=metric )
             reducer.fit_transform(spikes_norm)
             # compute the optimal set of clusters
             embedding_graph = nx.Graph(reducer.graph_)
             partition = community_louvain.best_partition(embedding_graph, resolution=1.1)
             unit_IDs = np.array([data[1]+1 for data in list(partition.items())])
+           
             # revisite clusters
             if len(np.unique(unit_IDs)) > 1:
-                mylist = self._detect_similarUnits(unit_IDs, spikes_norm, threshold=.7)
-                unit_IDs = self._merge_similarClusters(mylist, unit_IDs, spikes_norm)
+                unit_IDs = self._template_matching(unit_IDs, spikes)
+#                mylist = self._detect_similarUnits(unit_IDs, spikes_norm, threshold=.7)
+#                unit_IDs = self._merge_similarClusters(mylist, unit_IDs, spikes_norm)
             
         return unit_IDs
+    
+    def _template_matching(self, unit_IDs, spikes):
+        for unit in np.unique(unit_IDs):
+            unitgroup = spikes[unit_IDs == unit]
+            unitgroup_mean = unitgroup.mean(axis=0)
+            
+            max_similarity = np.inf
+            which = -1
+            for it, template in enumerate(self.templates):
+                template_phase = np.vstack((template[:-1], np.diff(template)))
+                unitgroup_mean_phase = np.vstack((unitgroup_mean[:-1], np.diff(unitgroup_mean)))
+                
+                # -- check similarity ---
+                similarity = sm.dtw(unitgroup_mean_phase, template_phase)[0]
+                if max_similarity > similarity:
+                    max_similarity = similarity
+                    which = it
+                    
+            print(max_similarity, which)
+            unit_IDs[unit_IDs == unit] = which
+            print(np.unique(unit_IDs))
+            IDs = np.arange(len(np.unique(unit_IDs)))
+            final_unit_IDs = [IDs[list(np.unique(unit_IDs)).index(u)] for u in unit_IDs]
+        return final_unit_IDs
+        
   
     def _detect_similarUnits(self, units, spikes, threshold=.8):
         means = []
@@ -60,24 +87,7 @@ class sorter:
             for aux, idx in zip(aux_means,aux_myindex):
                 aux_phase = np.vstack((aux[:-1], np.diff(aux)))
                 main_mean_phase = np.vstack((main_mean[:-1], np.diff(main_mean)))
-                
-                #//////////////////// ESTO NO DEBERÍA SER NECESARIO, AHORA SE HACE AL CARGAR LOS DATOS ////////////////////
-#                # -- check spike alignment --
-#                corr = signal.correlate(aux, main_mean)
-#                desplazamiento = int(np.argmax(corr) - corr.size/2)
-#                if abs(desplazamiento) < 5:
-#                    if desplazamiento < 0:
-#                        auxx = aux[:desplazamiento]
-#                        main_meanx = main_mean[abs(desplazamiento):]
-#                        aux_phase = np.vstack((auxx[:-1], np.diff(auxx)))
-#                        main_mean_phase = np.vstack((main_meanx[:-1], np.diff(main_meanx)))
-#                    elif desplazamiento > 0:
-#                        auxx = aux[desplazamiento:]
-#                        main_meanx = main_mean[:-desplazamiento]
-#                        aux_phase = np.vstack((auxx[:-1], np.diff(auxx)))
-#                        main_mean_phase = np.vstack((main_meanx[:-1], np.diff(main_meanx)))
-                #///////////////////////////////////////////////////////////////////////////////////////////////////////////
-                
+
                 # -- check similarity ---
                 similarity = sm.dtw(main_mean_phase, aux_phase)[0]
                 print('-------------------------------------------------')

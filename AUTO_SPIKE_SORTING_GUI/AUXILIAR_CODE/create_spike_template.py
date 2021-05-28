@@ -16,7 +16,7 @@ matplotlib.use('Qt5Agg')
 
 @timeit
 def run(spike_dict, current):
-
+    plt.close('all')
     waveforms = []
     
     plt.figure()    

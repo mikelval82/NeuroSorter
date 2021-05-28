@@ -8,7 +8,7 @@
 from GUI.GUI_behaviour import GUI_behaviour 
 from DATA_MANAGER.data_manager import data_manager
 from CLEANER.cleaner_03 import spike_denoiser
-from SORTER.sorter_umap_louvain import sorter
+from SORTER.sorter_umap_louvain_templates import sorter
 from PyQt5.QtWidgets import QApplication
 
 import seaborn as sns
