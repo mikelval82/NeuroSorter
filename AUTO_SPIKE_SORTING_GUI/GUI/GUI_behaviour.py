@@ -378,21 +378,22 @@ class GUI_behaviour(QMainWindow, ui):
             
     def onClicked_channel(self, index):
         experimentID = self.files_listWidget.currentRow()
-        print('que pasa ', self.channels_listWidget.count())
-        channel = self.channels_listWidget.currentItem().text()
+        print( 'que passa con curreent ITEm ', self.channels_listWidget.currentItem())
+        if self.channels_listWidget.currentItem() != None:
+            channel = self.channels_listWidget.currentItem().text()
 
-        if not self.channels_listWidget.item(index.row()).checkState():
-            self.channels_listWidget.item(index.row()).setCheckState(Qt.Checked)
-            if channel[:7] == 'Trigger':
-                self.dmg.set_trigger_active(experimentID, index.row(), mode=True)
+            if not self.channels_listWidget.item(index.row()).checkState():
+                self.channels_listWidget.item(index.row()).setCheckState(Qt.Checked)
+                if channel[:7] == 'Trigger':
+                    self.dmg.set_trigger_active(experimentID, index.row(), mode=True)
+                else:
+                    self.dmg.set_channel_active(experimentID, int(channel), mode=True)
             else:
-                self.dmg.set_channel_active(experimentID, int(channel), mode=True)
-        else:
-            self.channels_listWidget.item(index.row()).setCheckState(Qt.Unchecked)
-            if channel[:7] == 'Trigger':
-                self.dmg.set_trigger_active(experimentID, index.row(), mode=False)  
-            else:
-                self.dmg.set_channel_active(experimentID, int(channel), mode=False) 
+                self.channels_listWidget.item(index.row()).setCheckState(Qt.Unchecked)
+                if channel[:7] == 'Trigger':
+                    self.dmg.set_trigger_active(experimentID, index.row(), mode=False)  
+                else:
+                    self.dmg.set_channel_active(experimentID, int(channel), mode=False) 
 
     def openFileNameDialog(self, btn):
         options = QFileDialog.Options()
